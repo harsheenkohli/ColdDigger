@@ -66,6 +66,13 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
     'http://localhost:5173,http://127.0.0.1:5173'
 ).split(',')
 
+CORS_ALLOW_CREDENTIALS = True
+
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [

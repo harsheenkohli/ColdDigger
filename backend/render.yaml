@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: colddigger-backend
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: colddigger-db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+databases:
+  - name: colddigger-db
+    databaseName: colddigger
+    user: colddigger
+    plan: free

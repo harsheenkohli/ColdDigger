@@ -119,11 +119,6 @@ def get_resume_content_bytes(resume_field):
     r = http_requests.get(_full_url(resume_field.url))
     r.raise_for_status()
     return r.content
-        return content
-    except Exception:
-        r = http_requests.get(_full_url(resume_field.url))
-        r.raise_for_status()
-        return r.content
 
 
 def _tone_for_title(title):

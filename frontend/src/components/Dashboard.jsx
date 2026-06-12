@@ -125,7 +125,6 @@ const Dashboard = () => {
       const res = await api.get('/api/google/login/');
       window.location.href = res.data.auth_url;
     } catch (err) {
-      setError('Failed to initiate Google Login');
       setError(err.response?.data?.error || 'Failed to initiate Google Login. Please try again.');
     }
   };

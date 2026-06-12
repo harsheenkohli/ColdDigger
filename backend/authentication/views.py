@@ -452,14 +452,20 @@ def download_resume(request):
 
 def get_google_flow(request):
     from google_auth_oauthlib.flow import Flow
+    client_id = os.environ.get("GOOGLE_CLIENT_ID")
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
+    
+    if not client_id or not client_secret:
+        raise ValueError("Google OAuth credentials are missing from the backend environment variables.")
+
     client_config = {
         "web": {
-            "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+            "client_id": client_id,
             "project_id": "colddigger",
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
             "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+            "client_secret": client_secret,
         }
     }
     redirect_uri = request.build_absolute_uri('/api/google/callback/')
@@ -477,13 +483,16 @@ def get_google_flow(request):
 def google_oauth_login(request):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
-    flow = get_google_flow(request)
-    auth_url, state = flow.authorization_url(prompt='consent', access_type='offline')
-    return JsonResponse({'auth_url': auth_url})
+    try:
+        flow = get_google_flow(request)
+        auth_url, state = flow.authorization_url(prompt='consent', access_type='offline')
+        return JsonResponse({'auth_url': auth_url})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 def google_oauth_callback(request):
-    flow = get_google_flow(request)
     try:
+        flow = get_google_flow(request)
         flow.fetch_token(authorization_response=request.build_absolute_uri())
         creds = flow.credentials
         from .models import GoogleCredentials

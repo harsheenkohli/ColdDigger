@@ -15,6 +15,7 @@ from .utils import (
     extract_resume_text_from_file,
     get_resume_content_bytes,
     get_resume_content_bytes_from_file,
+    get_signed_cloudinary_resume_url,
     generate_cold_email,
     send_email_with_resume,
     run_email_job,
@@ -174,7 +175,8 @@ def get_user_resume(request):
     
     try:
         resume = UserResume.objects.get(user=request.user)
-        url = (resume.resume.url if resume.resume else None) or resume.resume_cloudinary_url
+        raw_url = (resume.resume.url if resume.resume else None) or resume.resume_cloudinary_url
+        url = get_signed_cloudinary_resume_url(raw_url)
         if not url:
             return JsonResponse({'error': 'No resume found'}, status=404)
         return JsonResponse({
@@ -215,6 +217,10 @@ def send_emails(request):
     resume_url = user_resume.resume_cloudinary_url
     if not resume_url:
         return JsonResponse({'error': 'Please re-upload your resume to use this feature.'}, status=400)
+
+    resume_url = get_signed_cloudinary_resume_url(
+        (user_resume.resume.url if user_resume.resume else None) or resume_url
+    )
 
     try:
         if user_resume.resume:
@@ -365,6 +371,10 @@ def preview_email(request):
     resume_url = user_resume.resume_cloudinary_url
     if not resume_url:
         return JsonResponse({'error': 'Please re-upload your resume to use this feature.'}, status=400)
+
+    resume_url = get_signed_cloudinary_resume_url(
+        (user_resume.resume.url if user_resume.resume else None) or resume_url
+    )
 
     try:
         if user_resume.resume:

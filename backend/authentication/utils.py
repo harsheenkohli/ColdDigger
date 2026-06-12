@@ -67,6 +67,7 @@ import google.generativeai as genai
 import pdfplumber
 import requests as http_requests
 import smtplib
+from urllib.parse import urlparse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -75,6 +76,7 @@ from email import encoders
 
 def extract_resume_text(url):
     """Extract text from a resume PDF given its URL."""
+    url = get_signed_cloudinary_resume_url(url)
     r = http_requests.get(url, timeout=30)
     r.raise_for_status()
     content = r.content
@@ -97,9 +99,62 @@ def extract_resume_text_from_file(resume_file):
 
 def get_resume_content_bytes(url):
     """Return raw bytes of resume from its URL."""
+    url = get_signed_cloudinary_resume_url(url)
     r = http_requests.get(url, timeout=30)
     r.raise_for_status()
     return r.content
+
+
+def get_signed_cloudinary_resume_url(url):
+    """Return a signed Cloudinary delivery URL when the asset is a raw PDF."""
+    if not url:
+        return url
+
+    try:
+        import cloudinary
+        import cloudinary.utils
+
+        parsed = urlparse(url)
+        path_parts = [part for part in parsed.path.split('/') if part]
+        if 'upload' not in path_parts:
+            return url
+
+        upload_index = path_parts.index('upload')
+        asset_parts = path_parts[upload_index + 1:]
+        if not asset_parts:
+            return url
+
+        version = None
+        if asset_parts[0].startswith('v') and asset_parts[0][1:].isdigit():
+            version = int(asset_parts[0][1:])
+            asset_parts = asset_parts[1:]
+
+        if not asset_parts:
+            return url
+
+        asset_path = '/'.join(asset_parts)
+        public_id, extension = os.path.splitext(asset_path)
+        if not public_id:
+            return url
+
+        cloudinary.config(
+            cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+            api_key=os.environ.get('CLOUDINARY_API_KEY'),
+            api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+        )
+
+        signed_url, _ = cloudinary.utils.cloudinary_url(
+            public_id,
+            resource_type='raw',
+            type='upload',
+            secure=True,
+            sign_url=True,
+            version=version,
+            format=extension.lstrip('.') or None,
+        )
+        return signed_url or url
+    except Exception:
+        return url
 
 
 def get_resume_content_bytes_from_file(resume_file):

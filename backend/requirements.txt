@@ -7,8 +7,3 @@ psycopg2-binary==2.9.10
 python-dotenv==1.0.1
 sqlparse==0.5.3
 tzdata==2025.1
-gunicorn==21.2.0
-whitenoise==6.8.2
-dj-database-url==2.3.0
-cloudinary==1.41.0
-django-cloudinary-storage==0.3.0

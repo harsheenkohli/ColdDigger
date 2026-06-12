@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import api from "../api";
+import axios from "axios";
 
 const toTitleCase = (str) => {
   return str.replace(/\w\S*/g, (txt) => {
@@ -17,7 +17,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPosition = async () => {
       try {
-        const response = await api.get('/api/get-position/');
+        const response = await axios.get('/api/get-position/');
         if (response.data.position) {
           setPosition(response.data.position);
         }
@@ -49,7 +49,7 @@ const Dashboard = () => {
     if (position) formData.append('position', position);
 
     try {
-      const response = await api.post('/api/upload-files/', formData, {
+      const response = await axios.post('/api/upload-files/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

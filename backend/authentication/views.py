@@ -99,14 +99,21 @@ def upload_files(request):
         if resume_file or position:
             defaults = {}
             if resume_file:
-                # Delete old file from Cloudinary before replacing
-                try:
-                    old = UserResume.objects.get(user=request.user)
-                    if old.resume:
-                        old.resume.delete(save=False)
-                except UserResume.DoesNotExist:
-                    pass
-                defaults['resume'] = resume_file
+                import cloudinary
+                import cloudinary.uploader
+                cloudinary.config(
+                    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+                    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+                    api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+                )
+                result = cloudinary.uploader.upload(
+                    resume_file,
+                    resource_type='raw',
+                    folder='resumes',
+                    use_filename=True,
+                    unique_filename=True,
+                )
+                defaults['resume_cloudinary_url'] = result['secure_url']
             if position:
                 defaults['position'] = position
 
@@ -156,8 +163,11 @@ def get_user_resume(request):
     
     try:
         resume = UserResume.objects.get(user=request.user)
+        url = resume.resume_cloudinary_url or (resume.resume.url if resume.resume else None)
+        if not url:
+            return JsonResponse({'error': 'No resume found'}, status=404)
         return JsonResponse({
-            'resume_url': resume.resume.url,
+            'resume_url': url,
             'updated_at': resume.updated_at
         })
     except UserResume.DoesNotExist:
@@ -191,17 +201,21 @@ def send_emails(request):
     if not contacts:
         return JsonResponse({'error': 'No contacts found. Please upload a contact CSV first.'}, status=400)
 
+    resume_url = user_resume.resume_cloudinary_url
+    if not resume_url:
+        return JsonResponse({'error': 'Please re-upload your resume to use this feature.'}, status=400)
+
     try:
-        resume_text = extract_resume_text(user_resume.resume)
+        resume_text = extract_resume_text(resume_url)
     except Exception as e:
         return JsonResponse({'error': f'Could not read resume: {str(e)}'}, status=400)
 
     try:
-        resume_bytes = get_resume_content_bytes(user_resume.resume)
+        resume_bytes = get_resume_content_bytes(resume_url)
     except Exception as e:
         return JsonResponse({'error': f'Could not load resume file: {str(e)}'}, status=400)
 
-    resume_filename = os.path.basename(user_resume.resume.name) or 'resume.pdf'
+    resume_filename = os.path.basename(user_resume.resume_cloudinary_url.split('/')[-1]) or 'resume.pdf'
     sender_name = request.user.first_name or request.user.email.split('@')[0]
     sender_email = request.user.email
 
@@ -330,8 +344,12 @@ def preview_email(request):
     if not contact:
         return JsonResponse({'error': 'No contacts found. Upload a CSV first.'}, status=400)
 
+    resume_url = user_resume.resume_cloudinary_url
+    if not resume_url:
+        return JsonResponse({'error': 'Please re-upload your resume to use this feature.'}, status=400)
+
     try:
-        resume_text = extract_resume_text(user_resume.resume)
+        resume_text = extract_resume_text(resume_url)
     except Exception as e:
         return JsonResponse({'error': f'Could not read resume: {str(e)}'}, status=400)
 

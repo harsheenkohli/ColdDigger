@@ -73,43 +73,21 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 
-def _cloudinary_download(name):
-    """Download a file from Cloudinary using a signed URL."""
-    import cloudinary
-    import cloudinary.utils
-    cloudinary.config(
-        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
-        api_key=os.environ.get('CLOUDINARY_API_KEY'),
-        api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
-    )
-    url, _ = cloudinary.utils.cloudinary_url(name, resource_type='raw', sign_url=True, secure=True)
-    r = http_requests.get(url)
+def extract_resume_text(url):
+    """Extract text from a resume PDF given its URL."""
+    r = http_requests.get(url, timeout=30)
     r.raise_for_status()
-    return r.content
-
-
-def extract_resume_text(resume_field):
-    """Read resume and extract text via pdfplumber."""
-    try:
-        content = _cloudinary_download(resume_field.name)
-    except Exception:
-        from django.core.files.storage import default_storage
-        with default_storage.open(resume_field.name, 'rb') as f:
-            content = f.read()
-
+    content = r.content
     with pdfplumber.open(io.BytesIO(content)) as pdf:
         text = '\n'.join(page.extract_text() or '' for page in pdf.pages)
     return text.strip()
 
 
-def get_resume_content_bytes(resume_field):
-    """Return raw bytes of resume file for email attachment."""
-    try:
-        return _cloudinary_download(resume_field.name)
-    except Exception:
-        from django.core.files.storage import default_storage
-        with default_storage.open(resume_field.name, 'rb') as f:
-            return f.read()
+def get_resume_content_bytes(url):
+    """Return raw bytes of resume from its URL."""
+    r = http_requests.get(url, timeout=30)
+    r.raise_for_status()
+    return r.content
 
 
 def _tone_for_title(title):

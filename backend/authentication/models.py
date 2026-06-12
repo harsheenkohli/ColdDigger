@@ -40,6 +40,7 @@ class EmailJob(models.Model):
 class UserResume(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     resume = models.FileField(upload_to='resumes/')
+    resume_cloudinary_url = models.URLField(blank=True, default='')
     position = models.CharField(max_length=255, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 

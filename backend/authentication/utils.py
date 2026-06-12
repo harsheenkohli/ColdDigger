@@ -74,12 +74,23 @@ from email import encoders
 
 
 def extract_resume_text(resume_field):
-    """Download resume from Cloudinary (or local) and extract text via pdfplumber."""
+    """Read resume and extract text via pdfplumber."""
+    from django.core.files.storage import default_storage
+    content = None
+
     try:
-        resume_field.seek(0)
-        content = resume_field.read()
+        with default_storage.open(resume_field.name, 'rb') as f:
+            content = f.read()
     except Exception:
-        r = http_requests.get(resume_field.url)
+        pass
+
+    if not content:
+        def _full_url(url):
+            if url.startswith('http'):
+                return url
+            base = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
+            return f"{base}{url}"
+        r = http_requests.get(_full_url(resume_field.url))
         r.raise_for_status()
         content = r.content
 
@@ -90,11 +101,27 @@ def extract_resume_text(resume_field):
 
 def get_resume_content_bytes(resume_field):
     """Return raw bytes of resume file for email attachment."""
+    from django.core.files.storage import default_storage
+
     try:
-        resume_field.seek(0)
-        return resume_field.read()
+        with default_storage.open(resume_field.name, 'rb') as f:
+            content = f.read()
+        if content:
+            return content
     except Exception:
-        r = http_requests.get(resume_field.url)
+        pass
+
+    def _full_url(url):
+        if url.startswith('http'):
+            return url
+        base = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
+        return f"{base}{url}"
+    r = http_requests.get(_full_url(resume_field.url))
+    r.raise_for_status()
+    return r.content
+        return content
+    except Exception:
+        r = http_requests.get(_full_url(resume_field.url))
         r.raise_for_status()
         return r.content
 

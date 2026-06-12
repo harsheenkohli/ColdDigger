@@ -99,10 +99,17 @@ def upload_files(request):
         if resume_file or position:
             defaults = {}
             if resume_file:
+                # Delete old file from Cloudinary before replacing
+                try:
+                    old = UserResume.objects.get(user=request.user)
+                    if old.resume:
+                        old.resume.delete(save=False)
+                except UserResume.DoesNotExist:
+                    pass
                 defaults['resume'] = resume_file
             if position:
                 defaults['position'] = position
-                
+
             UserResume.objects.update_or_create(
                 user=request.user,
                 defaults=defaults

@@ -54,12 +54,15 @@ const Dashboard = () => {
     }
   };
 
+  const [savedResumeUrl, setSavedResumeUrl] = useState('');
+
   const fetchResume = async () => {
     try {
       const res = await api.get('/api/user-resume/');
       const url = res.data.resume_url;
       const filename = url.split('/').pop().split('?')[0];
       setSavedResume(decodeURIComponent(filename));
+      setSavedResumeUrl(url);
     } catch (err) {
       // no resume yet
     }
@@ -223,7 +226,11 @@ const Dashboard = () => {
             <label htmlFor="resume-upload">Resume (PDF)</label>
             <input type="file" id="resume-upload" accept=".pdf" />
             {savedResume && (
-              <small style={{ color: '#888' }}>Current: {savedResume}</small>
+              <small>
+                <a href={savedResumeUrl} target="_blank" rel="noreferrer" style={{ color: '#0071e3', fontSize: '0.82rem' }}>
+                  {savedResume}
+                </a>
+              </small>
             )}
           </div>
           <div className="file-upload">
@@ -345,16 +352,21 @@ const Dashboard = () => {
 
       <div className="upload-section" style={{ marginTop: '2rem', width: '100%' }}>
         <h4>Send cold emails</h4>
-        <p style={{ fontSize: '0.9rem', color: '#999', marginBottom: '1rem' }}>
+        <p style={{ fontSize: '0.9rem', color: '#6e6e73', marginBottom: '1rem' }}>
           AI writes a personalised email for each contact based on your resume, their title and their company. Your resume is attached.
         </p>
+        {!savedResume && (
+          <p style={{ fontSize: '0.82rem', color: '#ff3b30', marginBottom: '0.75rem' }}>
+            Upload a resume above before sending.
+          </p>
+        )}
 
         {contactCount > 0 && (
           <button
             type="button"
             className="btn"
             onClick={handlePreview}
-            disabled={loadingPreview || sending}
+            disabled={loadingPreview || sending || !savedResume}
             style={{ marginBottom: '0.75rem', width: '100%' }}
           >
             {loadingPreview ? 'Generating preview...' : 'Preview one email'}
@@ -412,7 +424,7 @@ const Dashboard = () => {
             type="button"
             className="btn submit-btn"
             onClick={() => setConfirmSend(true)}
-            disabled={sending || selectedIds.size === 0}
+            disabled={sending || selectedIds.size === 0 || !savedResume}
           >
             {sending ? `Sending... ${jobProgress ? `${jobProgress.sent + jobProgress.failed}/${jobProgress.total}` : ''}` : 'Send cold emails'}
           </button>

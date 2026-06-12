@@ -5,12 +5,10 @@ import { useAuth } from "../context/AuthContext";
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,21 +34,42 @@ const Login = () => {
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
         />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) =>
-            setFormData({ ...formData, password: e.target.value })
-          }
-          required
-        />
+        <div style={{ position: 'relative' }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            required
+            style={{ width: '100%', paddingRight: '3rem' }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: 'absolute',
+              right: '0.75rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#6e6e73',
+              fontSize: '0.8rem',
+              padding: '0',
+              fontWeight: 500,
+              borderRadius: 0,
+            }}
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
         <button className="btn" type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Log In"}
         </button>
       </form>
-      <p>
-        <Link to="/signup">New user? Signup</Link>
+      <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#6e6e73' }}>
+        <Link to="/signup">New here? Create an account</Link>
       </p>
     </div>
   );

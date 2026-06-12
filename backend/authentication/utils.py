@@ -67,6 +67,7 @@ import google.generativeai as genai
 import pdfplumber
 import requests as http_requests
 import smtplib
+import socket
 from urllib.parse import urlparse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -121,42 +122,42 @@ def _compact_resume_text(resume_text, max_chars=6000):
     if len(compact_text) <= max_chars:
         return compact_text
 
-
-    def render_template(template, contact, position, sender_name):
-        """Replace supported placeholders in the template using contact and context.
-
-        Supported tokens:
-          {{first_name}}, {{last_name}}, {{full_name}}, {{company}}, {{title}}, {{position}}, {{sender_first_name}}
-        """
-        if not template:
-            return ''
-
-        full_name = (contact.name or '').strip()
-        parts = full_name.split()
-        first_name = parts[0] if parts else ''
-        last_name = parts[-1] if len(parts) > 1 else ''
-        company = (contact.company or '')
-        title = (contact.title or '')
-        sender_first = (sender_name or '').strip().split()[0] if sender_name else ''
-
-        replacements = {
-            '{{first_name}}': first_name,
-            '{{last_name}}': last_name,
-            '{{full_name}}': full_name,
-            '{{company}}': company,
-            '{{title}}': title,
-            '{{position}}': position or '',
-            '{{sender_first_name}}': sender_first,
-        }
-
-        rendered = template
-        # simple literal replacement
-        for token, value in replacements.items():
-            rendered = rendered.replace(token, value or '')
-
-        return rendered
-
     return compact_text[:max_chars]
+
+
+def render_template(template, contact, position, sender_name):
+    """Replace supported placeholders in the template using contact and context.
+
+    Supported tokens:
+      {{first_name}}, {{last_name}}, {{full_name}}, {{company}}, {{title}}, {{position}}, {{sender_first_name}}
+    """
+    if not template:
+        return ''
+
+    full_name = (contact.name or '').strip()
+    parts = full_name.split()
+    first_name = parts[0] if parts else ''
+    last_name = parts[-1] if len(parts) > 1 else ''
+    company = (contact.company or '')
+    title = (contact.title or '')
+    sender_first = (sender_name or '').strip().split()[0] if sender_name else ''
+
+    replacements = {
+        '{{first_name}}': first_name,
+        '{{last_name}}': last_name,
+        '{{full_name}}': full_name,
+        '{{company}}': company,
+        '{{title}}': title,
+        '{{position}}': position or '',
+        '{{sender_first_name}}': sender_first,
+    }
+
+    rendered = template
+    # simple literal replacement
+    for token, value in replacements.items():
+        rendered = rendered.replace(token, value or '')
+
+    return rendered
 
 
 def generate_cold_email(resume_text, position, sender_name, contact):
@@ -248,6 +249,8 @@ BODY:
 
 def send_email_with_resume(sender_name, sender_email, recipient_email, subject, body, resume_bytes, resume_filename):
     """Send email via Gmail SMTP with resume attached."""
+    import time as _time
+
     smtp_email = os.environ.get('SMTP_EMAIL')
     smtp_password = os.environ.get('SMTP_PASSWORD')
 
@@ -265,9 +268,39 @@ def send_email_with_resume(sender_name, sender_email, recipient_email, subject, 
     attachment.add_header('Content-Disposition', f'attachment; filename="{resume_filename}"')
     msg.attach(attachment)
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-        server.login(smtp_email, smtp_password)
-        server.sendmail(smtp_email, recipient_email, msg.as_string())
+    def _is_transient_network_error(exc):
+        if isinstance(exc, (socket.timeout, TimeoutError, smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError)):
+            return True
+        if isinstance(exc, OSError) and getattr(exc, 'errno', None) in {101, 104, 110, 111, 113}:
+            return True
+        text = str(exc).lower()
+        transient_markers = [
+            'network is unreachable',
+            'timed out',
+            'temporary failure',
+            'connection reset',
+            'connection aborted',
+            'connection refused',
+            'server disconnected',
+        ]
+        return any(marker in text for marker in transient_markers)
+
+    last_error = None
+    for attempt in range(3):
+        try:
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=20) as server:
+                server.login(smtp_email, smtp_password)
+                server.sendmail(smtp_email, recipient_email, msg.as_string())
+            return
+        except Exception as exc:
+            last_error = exc
+            if attempt < 2 and _is_transient_network_error(exc):
+                _time.sleep(2 ** attempt)
+                continue
+            raise
+
+    if last_error:
+        raise last_error
 
 
 def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, sender_name, sender_email, contacts, use_draft_for_all=False, draft_subject=None, draft_body=None):

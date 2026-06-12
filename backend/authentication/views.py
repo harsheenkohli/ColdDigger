@@ -365,11 +365,22 @@ def preview_email(request):
 
     sender_name = request.user.first_name or request.user.email.split('@')[0]
 
+    # Build a tokenized template (shown first in UI) that uses placeholders like {{first_name}}, {{company}}
+    template_subject = f"{{{{position}}}} Application - {{{{sender_first_name}}}}"
+    template_body = (
+        "Hi {{first_name}},\n\n"
+        "I’m reaching out about opportunities at {{company}}. I’m applying for the {{position}} role and wanted to share my background. "
+        "I’ve attached my resume for your review.\n\n"
+        "Best,\n{{sender_first_name}}"
+    )
+
     try:
         subject, body = generate_cold_email(resume_text, user_resume.position, sender_name, contact)
         return JsonResponse({
             'subject': subject,
             'body': body,
+            'template_subject': template_subject,
+            'template_body': template_body,
             'recipient': {
                 'name': contact.name,
                 'title': contact.title,
@@ -377,7 +388,19 @@ def preview_email(request):
             },
         })
     except Exception as e:
-        return JsonResponse({'error': f'Email generation failed: {str(e)}'}, status=500)
+        # If AI fails, still return the tokenized template so user can proceed.
+        return JsonResponse({
+            'subject': '',
+            'body': '',
+            'template_subject': template_subject,
+            'template_body': template_body,
+            'recipient': {
+                'name': contact.name,
+                'title': contact.title,
+                'company': contact.company,
+            },
+            'error': f'Email generation failed: {str(e)}'
+        }, status=200)
 
 
 def last_email_job(request):
@@ -394,21 +417,20 @@ def last_email_job(request):
             'sent': job.sent,
             'failed': job.failed,
             'results': job.results,
-            'created_at': job.created_at.isoformat(),
+            'created_at': job.created_at.isoformat() if job.created_at else None,
+            'completed_at': job.completed_at.isoformat() if job.completed_at else None,
         }
     })
 
 
-@csrf_exempt
 def download_resume(request):
-    """Stream the user's resume PDF through the backend."""
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
 
     try:
         user_resume = UserResume.objects.get(user=request.user)
     except UserResume.DoesNotExist:
-        return JsonResponse({'error': 'No resume found'}, status=404)
+        return JsonResponse({'error': 'No resume found. Please upload a resume.'}, status=404)
 
     try:
         # Get resume from FileField

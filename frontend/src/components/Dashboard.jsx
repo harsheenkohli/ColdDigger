@@ -157,9 +157,10 @@ const Dashboard = () => {
       const firstSelected = contacts.find(c => selectedIds.has(c.id)) || contacts[0];
       const res = await api.post('/api/preview-email/', { contact_id: firstSelected?.id || null });
       setPreview(res.data);
+      // Prefer the tokenized template when available so the first preview shows {{}} placeholders
       setEditablePreview({
-        subject: res.data.subject || '',
-        body: res.data.body || '',
+        subject: res.data.template_subject || res.data.subject || '',
+        body: res.data.template_body || res.data.body || '',
       });
     } catch (err) {
       setError(err.response?.data?.error || 'Could not generate preview');

@@ -159,12 +159,12 @@ def get_user_resume(request):
     
     try:
         resume = UserResume.objects.get(user=request.user)
-        raw_url = (resume.resume.url if resume.resume else None) or resume.resume_cloudinary_url
-        url = get_signed_cloudinary_resume_url(raw_url)
-        if not url:
+        if not resume.resume or not resume.resume.name:
             return JsonResponse({'error': 'No resume found'}, status=404)
+        resume_filename = os.path.basename(resume.resume.name) or 'resume.pdf'
         return JsonResponse({
-            'resume_url': url,
+            'resume_url': '/api/download-resume/',
+            'resume_filename': resume_filename,
             'updated_at': resume.updated_at
         })
     except UserResume.DoesNotExist:

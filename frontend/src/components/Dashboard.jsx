@@ -59,7 +59,7 @@ const Dashboard = () => {
   const fetchResume = async () => {
     try {
       const res = await api.get('/api/user-resume/');
-      const filename = res.data.resume_url.split('/').pop().split('?')[0];
+      const filename = res.data.resume_filename || res.data.resume_url.split('/').pop().split('?')[0];
       setSavedResume(decodeURIComponent(filename));
       setSavedResumeUrl('/api/download-resume/');
     } catch (err) {

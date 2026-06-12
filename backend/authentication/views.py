@@ -171,7 +171,12 @@ def send_emails(request):
     if not user_resume.position:
         return JsonResponse({'error': 'Please set your target position first'}, status=400)
 
-    contacts = list(CompanyContact.objects.filter(user=request.user))
+    data = json.loads(request.body) if request.body else {}
+    contact_ids = data.get('contact_ids')
+    qs = CompanyContact.objects.filter(user=request.user)
+    if contact_ids:
+        qs = qs.filter(id__in=contact_ids)
+    contacts = list(qs)
     if not contacts:
         return JsonResponse({'error': 'No contacts found. Please upload a contact CSV first.'}, status=400)
 
@@ -302,7 +307,12 @@ def preview_email(request):
     if not user_resume.position:
         return JsonResponse({'error': 'Please set your target position first'}, status=400)
 
-    contact = CompanyContact.objects.filter(user=request.user).first()
+    data = json.loads(request.body) if request.body else {}
+    contact_id = data.get('contact_id')
+    if contact_id:
+        contact = CompanyContact.objects.filter(user=request.user, id=contact_id).first()
+    else:
+        contact = CompanyContact.objects.filter(user=request.user).first()
     if not contact:
         return JsonResponse({'error': 'No contacts found. Upload a CSV first.'}, status=400)
 

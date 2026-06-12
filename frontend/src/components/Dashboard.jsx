@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [savedResume, setSavedResume] = useState('');
   const [lastJob, setLastJob] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -45,6 +46,7 @@ const Dashboard = () => {
       const res = await api.get('/api/contacts/');
       setContactCount(res.data.count);
       setContacts(res.data.contacts);
+      setSelectedIds(new Set(res.data.contacts.map(c => c.id)));
     } catch (err) {
       // silently ignore
     }
@@ -109,9 +111,26 @@ const Dashboard = () => {
       await api.delete('/api/clear-contacts/');
       setContactCount(0);
       setContacts([]);
+      setSelectedIds(new Set());
       setUploadStatus('Contact list cleared.');
     } catch (err) {
       setError('Could not clear contacts.');
+    }
+  };
+
+  const toggleContact = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === contacts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(contacts.map(c => c.id)));
     }
   };
 
@@ -120,7 +139,8 @@ const Dashboard = () => {
     setPreview(null);
     setError('');
     try {
-      const res = await api.post('/api/preview-email/');
+      const firstSelected = contacts.find(c => selectedIds.has(c.id));
+      const res = await api.post('/api/preview-email/', { contact_id: firstSelected?.id });
       setPreview(res.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Could not generate preview');
@@ -137,7 +157,7 @@ const Dashboard = () => {
     setPreview(null);
 
     try {
-      const response = await api.post('/api/send-emails/');
+      const response = await api.post('/api/send-emails/', { contact_ids: Array.from(selectedIds) });
       const jobId = response.data.job_id;
 
       pollRef.current = setInterval(async () => {
@@ -230,9 +250,23 @@ const Dashboard = () => {
           <p style={{ fontSize: '0.9rem', color: '#999' }}>No contacts loaded. Upload a CSV above.</p>
         ) : (
           <div style={{ maxHeight: '200px', overflowY: 'auto', marginTop: '0.5rem', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', fontSize: '0.8rem', color: '#888' }}>
+              <span>{selectedIds.size} of {contacts.length} selected</span>
+              <button type="button" className="btn" onClick={toggleAll} style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem' }}>
+                {selectedIds.size === contacts.length ? 'Deselect all' : 'Select all'}
+              </button>
+            </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <th style={{ padding: '0.3rem 0.5rem', width: '2rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.size === contacts.length && contacts.length > 0}
+                      onChange={toggleAll}
+                      style={{ cursor: 'pointer', width: 'auto' }}
+                    />
+                  </th>
                   <th style={{ textAlign: 'left', padding: '0.3rem 0.5rem', color: '#888', fontWeight: 500 }}>Name</th>
                   <th style={{ textAlign: 'left', padding: '0.3rem 0.5rem', color: '#888', fontWeight: 500 }}>Company</th>
                   <th style={{ textAlign: 'left', padding: '0.3rem 0.5rem', color: '#888', fontWeight: 500 }}>Title</th>
@@ -241,13 +275,26 @@ const Dashboard = () => {
               </thead>
               <tbody>
                 {contacts.map((c) => (
-                  <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <tr
+                    key={c.id}
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', opacity: selectedIds.has(c.id) ? 1 : 0.4, cursor: 'pointer' }}
+                    onClick={() => toggleContact(c.id)}
+                  >
+                    <td style={{ padding: '0.3rem 0.5rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(c.id)}
+                        onChange={() => toggleContact(c.id)}
+                        onClick={e => e.stopPropagation()}
+                        style={{ cursor: 'pointer', width: 'auto' }}
+                      />
+                    </td>
                     <td style={{ padding: '0.3rem 0.5rem', color: '#ccc' }}>{c.name}</td>
                     <td style={{ padding: '0.3rem 0.5rem', color: '#ccc' }}>{c.company}</td>
                     <td style={{ padding: '0.3rem 0.5rem', color: '#999' }}>{c.title}</td>
                     <td style={{ padding: '0.3rem 0.5rem', textAlign: 'center' }}>
                       {c.emailed_at ? (
-                        <span style={{ color: '#28a745', fontSize: '0.75rem' }}>Sent</span>
+                        <span style={{ color: '#66fcf1', fontSize: '0.75rem' }}>Sent</span>
                       ) : (
                         <span style={{ color: '#555', fontSize: '0.75rem' }}>-</span>
                       )}
@@ -329,14 +376,14 @@ const Dashboard = () => {
             type="button"
             className="btn submit-btn"
             onClick={() => setConfirmSend(true)}
-            disabled={sending || contactCount === 0}
+            disabled={sending || selectedIds.size === 0}
           >
             {sending ? `Sending... ${jobProgress ? `${jobProgress.sent + jobProgress.failed}/${jobProgress.total}` : ''}` : 'Send cold emails'}
           </button>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <p style={{ fontSize: '0.9rem', color: '#f0a500' }}>
-              This will send to all {contactCount} contact{contactCount === 1 ? '' : 's'}. Are you sure?
+              This will send to {selectedIds.size} contact{selectedIds.size === 1 ? '' : 's'}. Are you sure?
             </p>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button type="button" className="btn" onClick={handleSendEmails} disabled={sending} style={{ flex: 1 }}>

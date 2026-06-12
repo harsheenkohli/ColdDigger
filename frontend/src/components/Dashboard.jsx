@@ -425,15 +425,15 @@ const Dashboard = () => {
             <div style={{ marginTop: '0.75rem', color: '#bbb', fontSize: '0.82rem' }}>
               <div style={{ marginBottom: '0.35rem' }}>Allowed placeholders (use these in subject/body):</div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{{'{first_name}'}}</code>
-                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{{'{last_name}'}}</code>
-                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{{'{full_name}'}}</code>
-                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{{'{company}'}}</code>
-                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{{'{title}'}}</code>
-                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{{'{position}'}}</code>
-                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{{'{sender_first_name}'}}</code>
+                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{'{first_name}'}</code>
+                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{'{last_name}'}</code>
+                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{'{full_name}'}</code>
+                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{'{company}'}</code>
+                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{'{title}'}</code>
+                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{'{position}'}</code>
+                <code style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem 0.4rem', borderRadius: '4px' }}>{'{sender_first_name}'}</code>
               </div>
-              <div style={{ marginTop: '0.5rem', color: '#999' }}>Example: "Hi {{'{first_name}'}}, I'm interested in the {{'{position}'}} role at {{'{company}'}}."</div>
+              <div style={{ marginTop: '0.5rem', color: '#999' }}>Example: "Hi {'{first_name}'}, I'm interested in the {'{position}'} role at {'{company}'}."</div>
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem', fontSize: '0.8rem', color: '#ccc' }}>
               <input

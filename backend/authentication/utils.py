@@ -143,6 +143,16 @@ def get_signed_cloudinary_resume_url(url):
             api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
         )
 
+        # Prefer private_download_url when available (provides authenticated download)
+        try:
+            private_fn = getattr(cloudinary.utils, 'private_download_url', None)
+            if private_fn:
+                pd = private_fn(public_id, format=extension.lstrip('.') or None, resource_type='raw', version=version)
+                if pd:
+                    return pd
+        except Exception:
+            pass
+
         signed_url, _ = cloudinary.utils.cloudinary_url(
             public_id,
             resource_type='raw',

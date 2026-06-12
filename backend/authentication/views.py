@@ -450,7 +450,7 @@ def download_resume(request):
         return JsonResponse({'error': f'Failed to download resume: {str(e)}'}, status=500)
 
 
-def get_google_flow(request):
+def get_google_flow(request, state=None):
     from google_auth_oauthlib.flow import Flow
     client_id = os.environ.get("GOOGLE_CLIENT_ID")
     client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
@@ -473,11 +473,14 @@ def get_google_flow(request):
     if 'localhost' in redirect_uri or '127.0.0.1' in redirect_uri:
         os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
-    return Flow.from_client_config(
-        client_config,
-        scopes=['https://www.googleapis.com/auth/gmail.send'],
-        redirect_uri=redirect_uri
-    )
+    kwargs = {
+        'scopes': ['https://www.googleapis.com/auth/gmail.send'],
+        'redirect_uri': redirect_uri
+    }
+    if state:
+        kwargs['state'] = state
+
+    return Flow.from_client_config(client_config, **kwargs)
 
 @csrf_exempt
 def google_oauth_login(request):
@@ -486,13 +489,25 @@ def google_oauth_login(request):
     try:
         flow = get_google_flow(request)
         auth_url, state = flow.authorization_url(prompt='consent', access_type='offline')
+        
+        request.session['google_oauth_state'] = state
+        if getattr(flow, 'code_verifier', None):
+            request.session['google_code_verifier'] = flow.code_verifier
+            request.session.modified = True
+            
         return JsonResponse({'auth_url': auth_url})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
 def google_oauth_callback(request):
     try:
-        flow = get_google_flow(request)
+        state = request.session.get('google_oauth_state') or request.GET.get('state')
+        flow = get_google_flow(request, state=state)
+        
+        code_verifier = request.session.get('google_code_verifier')
+        if code_verifier:
+            flow.code_verifier = code_verifier
+            
         flow.fetch_token(authorization_response=request.build_absolute_uri())
         creds = flow.credentials
         from .models import GoogleCredentials

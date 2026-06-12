@@ -124,7 +124,7 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 1.25rem;
   max-width: 400px;
   margin: 0 auto;
   width: 100%;

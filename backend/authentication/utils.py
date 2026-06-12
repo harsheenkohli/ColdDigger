@@ -74,17 +74,6 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 
-def extract_resume_text(url):
-    """Extract text from a resume PDF given its URL."""
-    url = get_signed_cloudinary_resume_url(url)
-    r = http_requests.get(url, timeout=30)
-    r.raise_for_status()
-    content = r.content
-    with pdfplumber.open(io.BytesIO(content)) as pdf:
-        text = '\n'.join(page.extract_text() or '' for page in pdf.pages)
-    return text.strip()
-
-
 def extract_resume_text_from_file(resume_file):
     """Extract text from an uploaded resume file stored by Django."""
     if hasattr(resume_file, 'open'):
@@ -95,100 +84,6 @@ def extract_resume_text_from_file(resume_file):
     with pdfplumber.open(io.BytesIO(content)) as pdf:
         text = '\n'.join(page.extract_text() or '' for page in pdf.pages)
     return text.strip()
-
-
-def get_resume_content_bytes(url):
-    """Return raw bytes of resume from its URL."""
-    url = get_signed_cloudinary_resume_url(url)
-    r = http_requests.get(url, timeout=30)
-    r.raise_for_status()
-    return r.content
-
-
-def get_signed_cloudinary_resume_url(url):
-    """Return a signed Cloudinary delivery URL when the asset is a raw PDF."""
-    if not url:
-        return url
-
-    try:
-        import cloudinary
-        import cloudinary.utils
-
-        parsed = urlparse(url)
-        path_parts = [part for part in parsed.path.split('/') if part]
-        if 'upload' not in path_parts:
-            return url
-
-        upload_index = path_parts.index('upload')
-        asset_parts = path_parts[upload_index + 1:]
-        if not asset_parts:
-            return url
-
-        version = None
-        if asset_parts[0].startswith('v') and asset_parts[0][1:].isdigit():
-            version = int(asset_parts[0][1:])
-            asset_parts = asset_parts[1:]
-
-        if not asset_parts:
-            return url
-
-        asset_path = '/'.join(asset_parts)
-        public_id, extension = os.path.splitext(asset_path)
-        if not public_id:
-            return url
-
-        # Try a few candidate public_ids (some Cloudinary accounts include a
-        # leading 'media/' segment in the delivery path). Use the Admin API to
-        # find which public_id actually exists and use that for signing.
-        candidates = [public_id]
-        if public_id.startswith('media/'):
-            candidates.append(public_id[len('media/'):])
-        if '/' in public_id:
-            # also try removing the first folder component
-            candidates.append(public_id.split('/', 1)[1])
-
-        chosen_public_id = None
-        for cand in dict.fromkeys(candidates):
-            try:
-                # resource() will raise if not found
-                info = cloudinary.api.resource(cand, resource_type='raw', type='upload')
-                if info and info.get('public_id'):
-                    chosen_public_id = cand
-                    break
-            except Exception:
-                continue
-
-        if not chosen_public_id:
-            chosen_public_id = public_id
-
-        cloudinary.config(
-            cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
-            api_key=os.environ.get('CLOUDINARY_API_KEY'),
-            api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
-        )
-
-        # Prefer private_download_url when available (provides authenticated download)
-        try:
-            private_fn = getattr(cloudinary.utils, 'private_download_url', None)
-            if private_fn:
-                pd = private_fn(chosen_public_id, format=extension.lstrip('.') or None, resource_type='raw', version=version)
-                if pd:
-                    return pd
-        except Exception:
-            pass
-
-        signed_url, _ = cloudinary.utils.cloudinary_url(
-            chosen_public_id,
-            resource_type='raw',
-            type='upload',
-            secure=True,
-            sign_url=True,
-            version=version,
-            format=extension.lstrip('.') or None,
-        )
-        return signed_url or url
-    except Exception:
-        return url
 
 
 def get_resume_content_bytes_from_file(resume_file):

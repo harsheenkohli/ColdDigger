@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
@@ -11,38 +11,29 @@ const Navbar = () => {
     }
   };
 
+  const activeStyle = ({ isActive }) => ({
+    color: isActive ? '#66fcf1' : undefined,
+  });
+
   return (
     <nav className="navbar">
-      <h2>ColdDigger</h2>
+      <NavLink to="/" className="navbar-brand">
+        <img src="/logo.png" alt="ColdDigger" className="navbar-logo" />
+        <span>ColdDigger</span>
+      </NavLink>
       <ul>
-        <li>
-          <Link to="/">Home</Link>
-        </li>
-        <li>
-          <Link to="/about">About</Link>
-        </li>
-        <li>
-          <Link to="/contact">Contact</Link>
-        </li>
+        <li><NavLink to="/" style={activeStyle} end>Home</NavLink></li>
+        <li><NavLink to="/about" style={activeStyle}>About</NavLink></li>
+        <li><NavLink to="/contact" style={activeStyle}>Contact</NavLink></li>
         {user ? (
           <>
-            <li>
-              <Link to="/dashboard">Dashboard</Link>
-            </li>
-            <li>
-              <a href="#" onClick={handleLogout}>
-                Logout
-              </a>
-            </li>
+            <li><NavLink to="/dashboard" style={activeStyle}>Dashboard</NavLink></li>
+            <li><a href="#" onClick={handleLogout}>Logout</a></li>
           </>
         ) : (
           <>
-            <li>
-              <Link to="/login">Login</Link>
-            </li>
-            <li>
-              <Link to="/signup">Signup</Link>
-            </li>
+            <li><NavLink to="/login" style={activeStyle}>Log in</NavLink></li>
+            <li><NavLink to="/signup" style={activeStyle}>Sign up</NavLink></li>
           </>
         )}
       </ul>

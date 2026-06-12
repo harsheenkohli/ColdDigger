@@ -73,15 +73,15 @@
 
 .container {
   max-width: 1000px;
-  margin: 0 15rem 0 15rem;
-  padding: 2rem 1rem 2rem 1rem;
+  margin: 0 auto;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  /* color: green; */
   align-items: center;
   justify-content: center;
   background-color: #0b0c10;
   border-radius: 20px;
+  width: 100%;
 }
 
 .container h2 {
@@ -103,9 +103,27 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.navbar h2 {
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
   color: #66fcf1;
-  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.navbar-logo {
+  height: 32px;
+  width: 32px;
+  object-fit: contain;
+}
+
+.landing-logo {
+  height: 72px;
+  width: 72px;
+  object-fit: contain;
+  margin-bottom: 1rem;
 }
 
 .navbar ul {
@@ -219,17 +237,6 @@ textarea {
   margin: 2rem auto;
 }
 
-/* About Page */
-.about-box {
-  max-width: 800px;
-  text-align: center;
-  padding: 2rem;
-}
-
-.about-box p {
-  margin-bottom: 1rem;
-}
-
 /* Contact Form */
 .contact-box {
   max-width: 600px;
@@ -263,6 +270,22 @@ textarea {
 .social-links a {
   color: white;
   text-decoration: none;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-links a {
+  color: #ccc;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.footer-links a:hover {
+  color: #66fcf1;
 }
 
 .footer-bottom {

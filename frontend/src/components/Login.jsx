@@ -10,20 +10,23 @@ const Login = () => {
     password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const result = await login(formData.email, formData.password);
     if (result.success) {
       navigate("/dashboard");
     } else {
       setError(result.error);
+      setLoading(false);
     }
   };
 
   return (
     <div className="container">
-      <h2>Login</h2>
+      <h2>Log in</h2>
       {error && <p className="error-message">{error}</p>}
       <form onSubmit={handleSubmit}>
         <input
@@ -42,8 +45,8 @@ const Login = () => {
           }
           required
         />
-        <button className="btn" type="submit">
-          Login
+        <button className="btn" type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Log In"}
         </button>
       </form>
       <p>

@@ -1,33 +1,82 @@
 const About = () => {
+  const steps = [
+    {
+      number: "01",
+      title: "Upload your resume",
+      description: "Drop in your PDF resume. Gemini reads it and pulls out your real experience, skills and projects to write from.",
+    },
+    {
+      number: "02",
+      title: "Add your contacts",
+      description: "Upload a CSV with columns: name, email, title and company. These are the people who will receive your emails.",
+    },
+    {
+      number: "03",
+      title: "Send",
+      description: "Hit the button. Gemini writes a personalised email for each contact, adjusts the tone based on their job title and sends it with your resume attached.",
+    },
+  ];
+
+  const features = [
+    {
+      title: "No placeholders",
+      description: "Every email is fully written out. No [First Name] or [Company Name] left in.",
+    },
+    {
+      title: "Tone that fits",
+      description: "A recruiter gets a different email than a CEO or an engineer. The tone shifts automatically based on job title.",
+    },
+    {
+      title: "Your resume, attached",
+      description: "Each email goes out with your resume as an attachment and your name in the sender field.",
+    },
+    {
+      title: "Company context",
+      description: "Gemini pulls in what it knows about the company to make each email feel specific rather than generic.",
+    },
+  ];
+
   return (
-    <div className="container about-box">
-      <h2>About Us</h2>
-      <p>
-        Welcome to ColdDigger! We are dedicated to empowering students with a
-        seamless and efficient cold-emailing solution. Our platform is designed
-        to save time and effort by allowing students to send personalized emails
-        to multiple institutions at once, based on their academic interests and
-        career goals.
-      </p>
-      <p>
-        Our mission is to bridge the gap between students and educational
-        institutions, providing a streamlined process for communication and
-        opportunities. Whether you're looking to apply for internships,
-        scholarships, or research positions, ColdDigger is here to help you make
-        meaningful connections.
-      </p>
-      <p>
-        We believe in the power of personalized communication. Our platform
-        enables you to craft tailored messages that highlight your unique
-        strengths and aspirations, ensuring that your emails stand out. With
-        ColdDigger, you can focus on what matters most—your education and career
-        growth.
-      </p>
-      <p>
-        Join us on this journey to simplify and enhance your cold-emailing
-        experience. Together, we can open doors to new opportunities and help
-        you achieve your academic and professional dreams.
-      </p>
+    <div className="about-page">
+      <section className="about-hero">
+        <div className="container">
+          <h1>Cold emailing that sounds like you</h1>
+          <p className="about-subtitle">
+            ColdDigger takes your resume and a list of contacts, then writes a personalised email for each one. No templates and no filler text.
+          </p>
+        </div>
+      </section>
+
+      <section className="about-features">
+        <div className="container">
+          <h2>Why it works</h2>
+          <div className="features-grid">
+            {features.map((f) => (
+              <div className="feature-card" key={f.title}>
+                <h3>{f.title}</h3>
+                <p>{f.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="about-steps">
+        <div className="container">
+          <h2>How it works</h2>
+          <div className="steps-list">
+            {steps.map((s) => (
+              <div className="step-item" key={s.number}>
+                <span className="step-number">{s.number}</span>
+                <div>
+                  <h3>{s.title}</h3>
+                  <p>{s.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

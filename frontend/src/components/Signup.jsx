@@ -11,20 +11,28 @@ const Signup = () => {
     password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      setLoading(false);
+      return;
+    }
     const result = await register(formData);
     if (result.success) {
-      navigate("/login");
+      navigate("/dashboard");
     } else {
       setError(result.error);
     }
+    setLoading(false);
   };
 
   return (
     <div className="container">
-      <h2>Signup</h2>
+      <h2>Create an account</h2>
       {error && <p className="error-message">{error}</p>}
       <form onSubmit={handleSubmit}>
         <input
@@ -50,8 +58,9 @@ const Signup = () => {
           }
           required
         />
-        <button className="btn" type="submit">
-          Signup
+            <small style={{ color: '#888', marginTop: '-0.5rem' }}>At least 8 characters</small>
+        <button className="btn" type="submit" disabled={loading}>
+          {loading ? "Creating account..." : "Sign Up"}
         </button>
       </form>
       <p>

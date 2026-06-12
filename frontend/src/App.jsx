@@ -8,6 +8,7 @@ import LandingPage from './components/LandingPage';
 import About from './components/About';
 import ContactForm from './components/ContactForm';
 import ProtectedRoute from './components/ProtectedRoute';
+import NotFound from './components/NotFound';
 import Footer from './components/Footer';
 import './App.css';
 
@@ -32,6 +33,7 @@ const App = () => {
                   </ProtectedRoute>
                 } 
               />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <Footer />

@@ -35,3 +35,117 @@
   margin-top: 1rem;
   font-size: 1.2rem;
 }
+
+/* About page */
+.about-page {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.about-hero {
+  text-align: center;
+  padding: 3rem 0 2rem;
+}
+
+.about-hero h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.about-subtitle {
+  font-size: 1.15rem;
+  color: #888;
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.about-features {
+  margin: 3rem 0;
+}
+
+.about-features h2,
+.about-steps h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1.25rem;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+.feature-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.feature-card p {
+  font-size: 0.9rem;
+  color: #999;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.about-steps {
+  margin: 3rem 0;
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.step-item {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.step-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #646cff;
+  line-height: 1;
+  min-width: 2.5rem;
+}
+
+.step-item h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.step-item p {
+  font-size: 0.9rem;
+  color: #999;
+  margin: 0;
+  line-height: 1.6;
+}
+
+@media (prefers-color-scheme: light) {
+  .feature-card {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .about-subtitle,
+  .feature-card p,
+  .step-item p {
+    color: #555;
+  }
+}

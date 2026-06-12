@@ -126,6 +126,7 @@ const Dashboard = () => {
       window.location.href = res.data.auth_url;
     } catch (err) {
       setError('Failed to initiate Google Login');
+      setError(err.response?.data?.error || 'Failed to initiate Google Login. Please try again.');
     }
   };
 
@@ -498,10 +499,6 @@ const Dashboard = () => {
       <button type="button" className="btn" onClick={handleConnectGmail} style={{ width: '100%', background: '#4285F4', color: 'white', border: 'none' }}>
         Connect Gmail (Required to send)
       </button>
-      <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.5rem', textAlign: 'center', lineHeight: '1.4' }}>
-        <strong>Note for Users:</strong> This app uses the official Gmail API and is currently in Google's strict Testing phase. 
-        To test sending emails, please connect using the demo account: <br /><strong>Email:</strong> colddigger14@gmail.com | <strong>Password:</strong> WeWillWin
-      </p>
     </div>
 
         {!confirmSend ? (

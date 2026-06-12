@@ -263,7 +263,7 @@ const Dashboard = () => {
       <div className="upload-section" style={{ marginTop: '2rem', width: '100%' }}>
         <h4>Send cold emails</h4>
         <p style={{ fontSize: '0.9rem', color: '#999', marginBottom: '1rem' }}>
-          Gemini writes a personalised email for each contact based on your resume, their title and their company. Your resume is attached.
+          AI writes a personalised email for each contact based on your resume, their title and their company. Your resume is attached.
         </p>
 
         {contactCount > 0 && (

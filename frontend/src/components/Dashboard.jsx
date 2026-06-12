@@ -390,6 +390,9 @@ const Dashboard = () => {
             <p style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.5rem' }}>
               Preview for {preview.recipient.name} — {preview.recipient.title} at {preview.recipient.company}
             </p>
+            <p style={{ fontSize: '0.75rem', color: '#aaa', marginBottom: '0.75rem' }}>
+              This is a sample draft. By default, each sent email is personalized per recipient.
+            </p>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem' }}>
               Subject
             </label>
@@ -424,7 +427,7 @@ const Dashboard = () => {
                 checked={useDraftForAll}
                 onChange={(e) => setUseDraftForAll(e.target.checked)}
               />
-              Use this edited draft for all selected contacts
+              Reuse this edited draft for all selected contacts
             </label>
             <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '0.5rem', marginBottom: 0 }}>
               Default send mode personalizes each email separately. Turn this on only if you want the exact edited draft reused.

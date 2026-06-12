@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 
 class CompanyContact(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=255)
     email = models.EmailField()
     title = models.CharField(max_length=255)

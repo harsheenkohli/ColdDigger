@@ -1,12 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './LandingPage.css';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleButtonClick = () => {
-    navigate('/login');
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
   };
 
   return (
@@ -17,7 +23,9 @@ const LandingPage = () => {
         <div className="hero-content">
           <h2>Send cold emails that actually get read</h2>
           <p>Upload your resume, add a list of contacts and let AI write a personalised email for each one. Your resume goes out attached.</p>
-          <button className="btn" onClick={handleButtonClick}>Get Started</button>
+          <button className="btn" onClick={handleButtonClick}>
+            {user ? 'Go to Dashboard' : 'Get Started'}
+          </button>
         </div>
       </div>
     </div>

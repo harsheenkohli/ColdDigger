@@ -83,11 +83,33 @@ def extract_resume_text(url):
     return text.strip()
 
 
+def extract_resume_text_from_file(resume_file):
+    """Extract text from an uploaded resume file stored by Django."""
+    if hasattr(resume_file, 'open'):
+        resume_file.open('rb')
+    content = resume_file.read()
+    if hasattr(resume_file, 'close'):
+        resume_file.close()
+    with pdfplumber.open(io.BytesIO(content)) as pdf:
+        text = '\n'.join(page.extract_text() or '' for page in pdf.pages)
+    return text.strip()
+
+
 def get_resume_content_bytes(url):
     """Return raw bytes of resume from its URL."""
     r = http_requests.get(url, timeout=30)
     r.raise_for_status()
     return r.content
+
+
+def get_resume_content_bytes_from_file(resume_file):
+    """Return raw bytes from an uploaded resume file stored by Django."""
+    if hasattr(resume_file, 'open'):
+        resume_file.open('rb')
+    content = resume_file.read()
+    if hasattr(resume_file, 'close'):
+        resume_file.close()
+    return content
 
 
 def _tone_for_title(title):

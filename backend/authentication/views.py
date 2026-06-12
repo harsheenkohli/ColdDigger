@@ -9,7 +9,16 @@ import json
 import os
 import threading
 from .models import UserResume, CompanyContact, EmailJob
-from .utils import process_csv_file, extract_resume_text, get_resume_content_bytes, generate_cold_email, send_email_with_resume, run_email_job
+from .utils import (
+    process_csv_file,
+    extract_resume_text,
+    extract_resume_text_from_file,
+    get_resume_content_bytes,
+    get_resume_content_bytes_from_file,
+    generate_cold_email,
+    send_email_with_resume,
+    run_email_job,
+)
 
 @csrf_exempt
 def register_user(request):
@@ -113,6 +122,8 @@ def upload_files(request):
                     use_filename=True,
                     unique_filename=True,
                 )
+                resume_file.seek(0)
+                defaults['resume'] = resume_file
                 defaults['resume_cloudinary_url'] = result['secure_url']
             if position:
                 defaults['position'] = position
@@ -163,7 +174,7 @@ def get_user_resume(request):
     
     try:
         resume = UserResume.objects.get(user=request.user)
-        url = resume.resume_cloudinary_url or (resume.resume.url if resume.resume else None)
+        url = (resume.resume.url if resume.resume else None) or resume.resume_cloudinary_url
         if not url:
             return JsonResponse({'error': 'No resume found'}, status=404)
         return JsonResponse({
@@ -206,16 +217,23 @@ def send_emails(request):
         return JsonResponse({'error': 'Please re-upload your resume to use this feature.'}, status=400)
 
     try:
-        resume_text = extract_resume_text(resume_url)
+        if user_resume.resume:
+            resume_text = extract_resume_text_from_file(user_resume.resume)
+        else:
+            resume_text = extract_resume_text(resume_url)
     except Exception as e:
         return JsonResponse({'error': f'Could not read resume: {str(e)}'}, status=400)
 
     try:
-        resume_bytes = get_resume_content_bytes(resume_url)
+        if user_resume.resume:
+            resume_bytes = get_resume_content_bytes_from_file(user_resume.resume)
+        else:
+            resume_bytes = get_resume_content_bytes(resume_url)
     except Exception as e:
         return JsonResponse({'error': f'Could not load resume file: {str(e)}'}, status=400)
 
-    resume_filename = os.path.basename(user_resume.resume_cloudinary_url.split('/')[-1]) or 'resume.pdf'
+    resume_filename = os.path.basename(user_resume.resume.name) if user_resume.resume else os.path.basename(user_resume.resume_cloudinary_url.split('/')[-1])
+    resume_filename = resume_filename or 'resume.pdf'
     sender_name = request.user.first_name or request.user.email.split('@')[0]
     sender_email = request.user.email
 
@@ -349,7 +367,10 @@ def preview_email(request):
         return JsonResponse({'error': 'Please re-upload your resume to use this feature.'}, status=400)
 
     try:
-        resume_text = extract_resume_text(resume_url)
+        if user_resume.resume:
+            resume_text = extract_resume_text_from_file(user_resume.resume)
+        else:
+            resume_text = extract_resume_text(resume_url)
     except Exception as e:
         return JsonResponse({'error': f'Could not read resume: {str(e)}'}, status=400)
 

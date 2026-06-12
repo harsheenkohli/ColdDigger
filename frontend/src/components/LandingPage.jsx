@@ -16,7 +16,7 @@ const LandingPage = () => {
         <h1>Welcome to ColdDigger</h1>
         <div className="hero-content">
           <h2>Send cold emails that actually get read</h2>
-          <p>Upload your resume, add a list of contacts and let Gemini write a personalised email for each one. Your resume goes out attached.</p>
+          <p>Upload your resume, add a list of contacts and let AI write a personalised email for each one. Your resume goes out attached.</p>
           <button className="btn" onClick={handleButtonClick}>Get Started</button>
         </div>
       </div>

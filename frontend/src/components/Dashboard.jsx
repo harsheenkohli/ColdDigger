@@ -120,6 +120,15 @@ const Dashboard = () => {
     }
   };
 
+  const handleConnectGmail = async () => {
+    try {
+      const res = await api.get('/api/google/login/');
+      window.location.href = res.data.auth_url;
+    } catch (err) {
+      setError('Failed to initiate Google Login');
+    }
+  };
+
   const handleClearContacts = async () => {
     try {
       await api.delete('/api/clear-contacts/');
@@ -484,6 +493,16 @@ const Dashboard = () => {
             )}
           </div>
         )}
+    
+    <div style={{ marginBottom: '1rem' }}>
+      <button type="button" className="btn" onClick={handleConnectGmail} style={{ width: '100%', background: '#4285F4', color: 'white', border: 'none' }}>
+        Connect Gmail (Required to send)
+      </button>
+      <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.5rem', textAlign: 'center', lineHeight: '1.4' }}>
+        <strong>Note for Users:</strong> This app uses the official Gmail API and is currently in Google's strict Testing phase. 
+        To test sending emails, please connect using the demo account: <br /><strong>Email:</strong> colddigger14@gmail.com | <strong>Password:</strong> WeWillWin
+      </p>
+    </div>
 
         {!confirmSend ? (
           <button

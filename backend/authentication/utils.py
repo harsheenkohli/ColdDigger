@@ -247,17 +247,25 @@ BODY:
     return build_fallback_email()
 
 
-def send_email_with_resume(sender_name, sender_email, recipient_email, subject, body, resume_bytes, resume_filename):
-    """Send email via Gmail SMTP with resume attached."""
-    import time as _time
+def send_email_with_resume(sender_name, sender_email, recipient_email, subject, body, resume_bytes, resume_filename, user=None):
+    """Send email natively using the user's connected Gmail API."""
+    from google.oauth2.credentials import Credentials
+    from googleapiclient.discovery import build
+    from .models import GoogleCredentials
+    import base64
 
-    smtp_email = os.environ.get('SMTP_EMAIL')
-    smtp_password = os.environ.get('SMTP_PASSWORD')
+    if not user:
+        raise ValueError("User reference is missing for Gmail API.")
+
+    try:
+        google_creds = GoogleCredentials.objects.get(user=user)
+        creds = Credentials.from_json(google_creds.creds_json)
+    except GoogleCredentials.DoesNotExist:
+        raise ValueError("Gmail not connected. Please connect your Google account in the dashboard.")
 
     msg = MIMEMultipart()
-    msg['From'] = f"{sender_name} <{smtp_email}>"
+    msg['From'] = f"{sender_name} <{sender_email}>"
     msg['To'] = recipient_email
-    msg['Reply-To'] = sender_email
     msg['Subject'] = subject
 
     msg.attach(MIMEText(body, 'plain'))
@@ -268,39 +276,13 @@ def send_email_with_resume(sender_name, sender_email, recipient_email, subject, 
     attachment.add_header('Content-Disposition', f'attachment; filename="{resume_filename}"')
     msg.attach(attachment)
 
-    def _is_transient_network_error(exc):
-        if isinstance(exc, (socket.timeout, TimeoutError, smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError)):
-            return True
-        if isinstance(exc, OSError) and getattr(exc, 'errno', None) in {101, 104, 110, 111, 113}:
-            return True
-        text = str(exc).lower()
-        transient_markers = [
-            'network is unreachable',
-            'timed out',
-            'temporary failure',
-            'connection reset',
-            'connection aborted',
-            'connection refused',
-            'server disconnected',
-        ]
-        return any(marker in text for marker in transient_markers)
+    raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode()
 
-    last_error = None
-    for attempt in range(3):
-        try:
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=20) as server:
-                server.login(smtp_email, smtp_password)
-                server.sendmail(smtp_email, recipient_email, msg.as_string())
-            return
-        except Exception as exc:
-            last_error = exc
-            if attempt < 2 and _is_transient_network_error(exc):
-                _time.sleep(2 ** attempt)
-                continue
-            raise
-
-    if last_error:
-        raise last_error
+    try:
+        service = build('gmail', 'v1', credentials=creds)
+        service.users().messages().send(userId='me', body={'raw': raw_message}).execute()
+    except Exception as e:
+        raise ConnectionError(f"Gmail API failed: {e}") from e
 
 
 def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, sender_name, sender_email, contacts, use_draft_for_all=False, draft_subject=None, draft_body=None):
@@ -331,7 +313,8 @@ def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, 
                     subject, body = generate_cold_email(resume_text, position, sender_name, contact)
                 send_email_with_resume(
                     sender_name, sender_email, contact.email,
-                    subject, body, resume_bytes, resume_filename
+                    subject, body, resume_bytes, resume_filename,
+                    user=job.user
                 )
                 CompanyContact.objects.filter(id=contact.id).update(emailed_at=timezone.now())
                 sent += 1

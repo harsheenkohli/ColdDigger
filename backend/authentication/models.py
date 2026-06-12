@@ -46,3 +46,8 @@ class UserResume(models.Model):
 
     def __str__(self):
         return f"Resume of {self.user.email} for position '{self.position}'"
+
+
+class GoogleCredentials(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='google_creds')
+    creds_json = models.TextField()

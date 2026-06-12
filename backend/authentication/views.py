@@ -448,3 +448,51 @@ def download_resume(request):
         return response
     except Exception as e:
         return JsonResponse({'error': f'Failed to download resume: {str(e)}'}, status=500)
+
+
+def get_google_flow(request):
+    from google_auth_oauthlib.flow import Flow
+    client_config = {
+        "web": {
+            "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+            "project_id": "colddigger",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+        }
+    }
+    redirect_uri = request.build_absolute_uri('/api/google/callback/')
+    # Allow HTTP transport for local development only
+    if 'localhost' in redirect_uri or '127.0.0.1' in redirect_uri:
+        os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+    return Flow.from_client_config(
+        client_config,
+        scopes=['https://www.googleapis.com/auth/gmail.send'],
+        redirect_uri=redirect_uri
+    )
+
+@csrf_exempt
+def google_oauth_login(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    flow = get_google_flow(request)
+    auth_url, state = flow.authorization_url(prompt='consent', access_type='offline')
+    return JsonResponse({'auth_url': auth_url})
+
+def google_oauth_callback(request):
+    flow = get_google_flow(request)
+    try:
+        flow.fetch_token(authorization_response=request.build_absolute_uri())
+        creds = flow.credentials
+        from .models import GoogleCredentials
+        GoogleCredentials.objects.update_or_create(
+            user=request.user,
+            defaults={'creds_json': creds.to_json()}
+        )
+        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+        from django.shortcuts import redirect
+        return redirect(f'{frontend_url}/dashboard')
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

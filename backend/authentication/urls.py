@@ -17,4 +17,6 @@ urlpatterns = [
     path('clear-contacts/', views.clear_contacts, name='clear_contacts'),
     path('preview-email/', views.preview_email, name='preview_email'),
     path('last-email-job/', views.last_email_job, name='last_email_job'),
+    path('google/login/', views.google_oauth_login, name='google_login'),
+    path('google/callback/', views.google_oauth_callback, name='google_callback'),
 ]

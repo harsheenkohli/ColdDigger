@@ -18,6 +18,8 @@ const Dashboard = () => {
   const [confirmSend, setConfirmSend] = useState(false);
   const [jobProgress, setJobProgress] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [editablePreview, setEditablePreview] = useState(null);
+  const [useDraftForAll, setUseDraftForAll] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [savedResume, setSavedResume] = useState('');
@@ -149,11 +151,16 @@ const Dashboard = () => {
   const handlePreview = async () => {
     setLoadingPreview(true);
     setPreview(null);
+    setEditablePreview(null);
     setError('');
     try {
       const firstSelected = contacts.find(c => selectedIds.has(c.id)) || contacts[0];
       const res = await api.post('/api/preview-email/', { contact_id: firstSelected?.id || null });
       setPreview(res.data);
+      setEditablePreview({
+        subject: res.data.subject || '',
+        body: res.data.body || '',
+      });
     } catch (err) {
       setError(err.response?.data?.error || 'Could not generate preview');
     } finally {
@@ -166,10 +173,14 @@ const Dashboard = () => {
     setError('');
     setConfirmSend(false);
     setJobProgress(null);
-    setPreview(null);
 
     try {
-      const response = await api.post('/api/send-emails/', { contact_ids: Array.from(selectedIds) });
+      const response = await api.post('/api/send-emails/', {
+        contact_ids: Array.from(selectedIds),
+        use_draft_for_all: useDraftForAll,
+        draft_subject: editablePreview?.subject || preview?.subject || '',
+        draft_body: editablePreview?.body || preview?.body || '',
+      });
       const jobId = response.data.job_id;
 
       pollRef.current = setInterval(async () => {
@@ -179,6 +190,8 @@ const Dashboard = () => {
           if (status.data.status === 'done' || status.data.status === 'failed') {
             clearInterval(pollRef.current);
             setSending(false);
+            setPreview(null);
+            setEditablePreview(null);
           }
         } catch (err) {
           clearInterval(pollRef.current);
@@ -377,8 +390,45 @@ const Dashboard = () => {
             <p style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.5rem' }}>
               Preview for {preview.recipient.name} — {preview.recipient.title} at {preview.recipient.company}
             </p>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Subject: {preview.subject}</p>
-            <pre style={{ fontSize: '0.82rem', whiteSpace: 'pre-wrap', color: '#ccc', margin: 0 }}>{preview.body}</pre>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+              Subject
+            </label>
+            <input
+              type="text"
+              value={editablePreview?.subject || ''}
+              onChange={(e) => setEditablePreview((current) => ({ ...(current || {}), subject: e.target.value }))}
+              style={{ width: '100%', marginBottom: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.2)', color: '#fff' }}
+            />
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+              Body
+            </label>
+            <textarea
+              value={editablePreview?.body || ''}
+              onChange={(e) => setEditablePreview((current) => ({ ...(current || {}), body: e.target.value }))}
+              rows={10}
+              style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.2)', color: '#fff', resize: 'vertical', whiteSpace: 'pre-wrap' }}
+            />
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setEditablePreview({ subject: preview.subject || '', body: preview.body || '' })}
+                style={{ flex: 1 }}
+              >
+                Reset draft
+              </button>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem', fontSize: '0.8rem', color: '#ccc' }}>
+              <input
+                type="checkbox"
+                checked={useDraftForAll}
+                onChange={(e) => setUseDraftForAll(e.target.checked)}
+              />
+              Use this edited draft for all selected contacts
+            </label>
+            <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '0.5rem', marginBottom: 0 }}>
+              Default send mode personalizes each email separately. Turn this on only if you want the exact edited draft reused.
+            </p>
           </div>
         )}
 

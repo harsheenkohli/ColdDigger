@@ -194,6 +194,9 @@ def send_emails(request):
     except Exception:
         data = {}
     contact_ids = data.get('contact_ids')
+    use_draft_for_all = bool(data.get('use_draft_for_all', False))
+    draft_subject = (data.get('draft_subject') or '').strip()
+    draft_body = (data.get('draft_body') or '').strip()
     qs = CompanyContact.objects.filter(user=request.user)
     if contact_ids:
         qs = qs.filter(id__in=contact_ids)
@@ -219,7 +222,19 @@ def send_emails(request):
 
     t = threading.Thread(
         target=run_email_job,
-        args=(job.id, resume_text, resume_bytes, resume_filename, user_resume.position, sender_name, sender_email, contacts),
+        args=(
+            job.id,
+            resume_text,
+            resume_bytes,
+            resume_filename,
+            user_resume.position,
+            sender_name,
+            sender_email,
+            contacts,
+            use_draft_for_all,
+            draft_subject or None,
+            draft_body or None,
+        ),
         daemon=True,
     )
     t.start()

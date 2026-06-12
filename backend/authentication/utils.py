@@ -109,6 +109,21 @@ def _tone_for_title(title):
     return "Peer-to-peer and genuine. Be direct, enthusiastic, and highlight the most relevant skills."
 
 
+def _compact_resume_text(resume_text, max_chars=6000):
+    """Trim resume text so Gemini sees only the most relevant text and fewer tokens."""
+    cleaned_lines = []
+    for line in resume_text.splitlines():
+        stripped = line.strip()
+        if stripped:
+            cleaned_lines.append(stripped)
+
+    compact_text = '\n'.join(cleaned_lines)
+    if len(compact_text) <= max_chars:
+        return compact_text
+
+    return compact_text[:max_chars]
+
+
 def generate_cold_email(resume_text, position, sender_name, contact):
     """Call Gemini to generate a subject line and email body with zero placeholders."""
     import time as _time
@@ -116,11 +131,12 @@ def generate_cold_email(resume_text, position, sender_name, contact):
     model = genai.GenerativeModel('gemini-2.0-flash')
 
     tone = _tone_for_title(contact.title)
+    compact_resume_text = _compact_resume_text(resume_text)
 
     prompt = f"""You are writing a cold job-application email that will be sent immediately. Every field must be fully filled in — zero placeholders allowed.
 
 --- SENDER RESUME ---
-{resume_text}
+{compact_resume_text}
 --- END RESUME ---
 
 SENDER NAME: {sender_name}
@@ -145,6 +161,18 @@ Output format — use these exact labels:
 SUBJECT: <subject line>
 BODY:
 <email body>"""
+
+    def build_fallback_email():
+        resume_lines = [line.strip() for line in compact_resume_text.splitlines() if line.strip()]
+        highlight = resume_lines[0] if resume_lines else f"my background as a {position} candidate"
+        subject = f"{position} Application - {sender_name}"
+        body = (
+            f"Hi {contact.name.split()[0]},\n\n"
+            f"I’m reaching out about opportunities at {contact.company}. I’m applying for the {position} role and wanted to share my background. {highlight}.\n\n"
+            f"I’d love to connect and discuss how my experience could support your team at {contact.company}.\n\n"
+            f"Best,\n{sender_name.split()[0]}"
+        )
+        return subject, body
 
     last_error = None
     for attempt in range(3):
@@ -173,8 +201,14 @@ BODY:
             return subject, body
         except Exception as e:
             last_error = e
+            error_text = str(e).lower()
+            if '429' in error_text or 'quota' in error_text or 'rate limit' in error_text:
+                return build_fallback_email()
 
-    raise last_error
+    if last_error:
+        return build_fallback_email()
+
+    return build_fallback_email()
 
 
 def send_email_with_resume(sender_name, sender_email, recipient_email, subject, body, resume_bytes, resume_filename):
@@ -201,7 +235,7 @@ def send_email_with_resume(sender_name, sender_email, recipient_email, subject, 
         server.sendmail(smtp_email, recipient_email, msg.as_string())
 
 
-def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, sender_name, sender_email, contacts):
+def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, sender_name, sender_email, contacts, use_draft_for_all=False, draft_subject=None, draft_body=None):
     """Background thread: generates and sends one email per contact, updates EmailJob progress."""
     import time as _time
     from django.utils import timezone
@@ -221,7 +255,10 @@ def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, 
             if i > 0:
                 _time.sleep(0.6)
             try:
-                subject, body = generate_cold_email(resume_text, position, sender_name, contact)
+                if use_draft_for_all and draft_subject and draft_body:
+                    subject, body = draft_subject, draft_body
+                else:
+                    subject, body = generate_cold_email(resume_text, position, sender_name, contact)
                 send_email_with_resume(
                     sender_name, sender_email, contact.email,
                     subject, body, resume_bytes, resume_filename

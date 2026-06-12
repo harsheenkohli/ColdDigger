@@ -8,6 +8,7 @@ urlpatterns = [
     path('check-auth/', views.check_auth, name='check_auth'),
     path('upload-files/', views.upload_files, name='upload_files'),
     path('user-resume/', views.get_user_resume, name='get_user_resume'),
+    path('download-resume/', views.download_resume, name='download_resume'),
     path('get-position/', views.get_user_position, name='get-position'),
     path('send-emails/', views.send_emails, name='send_emails'),
     path('contact/', views.contact_us, name='contact_us'),

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
@@ -418,3 +418,36 @@ def last_email_job(request):
             'created_at': job.created_at.isoformat(),
         }
     })
+
+
+@csrf_exempt
+def download_resume(request):
+    """Stream the user's resume PDF through the backend, bypassing Cloudinary delivery auth."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
+    try:
+        user_resume = UserResume.objects.get(user=request.user)
+    except UserResume.DoesNotExist:
+        return JsonResponse({'error': 'No resume found'}, status=404)
+
+    try:
+        resume_bytes = None
+        resume_filename = 'resume.pdf'
+
+        if user_resume.resume:
+            resume_bytes = get_resume_content_bytes_from_file(user_resume.resume)
+            resume_filename = os.path.basename(user_resume.resume.name) or 'resume.pdf'
+        elif user_resume.resume_cloudinary_url:
+            signed_url = get_signed_cloudinary_resume_url(user_resume.resume_cloudinary_url)
+            resume_bytes = get_resume_content_bytes(signed_url)
+            resume_filename = os.path.basename(user_resume.resume_cloudinary_url.split('/')[-1]) or 'resume.pdf'
+
+        if not resume_bytes:
+            return JsonResponse({'error': 'No resume content available'}, status=400)
+
+        response = HttpResponse(resume_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{resume_filename}"'
+        return response
+    except Exception as e:
+        return JsonResponse({'error': f'Failed to download resume: {str(e)}'}, status=400)

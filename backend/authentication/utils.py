@@ -137,6 +137,30 @@ def get_signed_cloudinary_resume_url(url):
         if not public_id:
             return url
 
+        # Try a few candidate public_ids (some Cloudinary accounts include a
+        # leading 'media/' segment in the delivery path). Use the Admin API to
+        # find which public_id actually exists and use that for signing.
+        candidates = [public_id]
+        if public_id.startswith('media/'):
+            candidates.append(public_id[len('media/'):])
+        if '/' in public_id:
+            # also try removing the first folder component
+            candidates.append(public_id.split('/', 1)[1])
+
+        chosen_public_id = None
+        for cand in dict.fromkeys(candidates):
+            try:
+                # resource() will raise if not found
+                info = cloudinary.api.resource(cand, resource_type='raw', type='upload')
+                if info and info.get('public_id'):
+                    chosen_public_id = cand
+                    break
+            except Exception:
+                continue
+
+        if not chosen_public_id:
+            chosen_public_id = public_id
+
         cloudinary.config(
             cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
             api_key=os.environ.get('CLOUDINARY_API_KEY'),
@@ -147,14 +171,14 @@ def get_signed_cloudinary_resume_url(url):
         try:
             private_fn = getattr(cloudinary.utils, 'private_download_url', None)
             if private_fn:
-                pd = private_fn(public_id, format=extension.lstrip('.') or None, resource_type='raw', version=version)
+                pd = private_fn(chosen_public_id, format=extension.lstrip('.') or None, resource_type='raw', version=version)
                 if pd:
                     return pd
         except Exception:
             pass
 
         signed_url, _ = cloudinary.utils.cloudinary_url(
-            public_id,
+            chosen_public_id,
             resource_type='raw',
             type='upload',
             secure=True,

@@ -121,6 +121,41 @@ def _compact_resume_text(resume_text, max_chars=6000):
     if len(compact_text) <= max_chars:
         return compact_text
 
+
+    def render_template(template, contact, position, sender_name):
+        """Replace supported placeholders in the template using contact and context.
+
+        Supported tokens:
+          {{first_name}}, {{last_name}}, {{full_name}}, {{company}}, {{title}}, {{position}}, {{sender_first_name}}
+        """
+        if not template:
+            return ''
+
+        full_name = (contact.name or '').strip()
+        parts = full_name.split()
+        first_name = parts[0] if parts else ''
+        last_name = parts[-1] if len(parts) > 1 else ''
+        company = (contact.company or '')
+        title = (contact.title or '')
+        sender_first = (sender_name or '').strip().split()[0] if sender_name else ''
+
+        replacements = {
+            '{{first_name}}': first_name,
+            '{{last_name}}': last_name,
+            '{{full_name}}': full_name,
+            '{{company}}': company,
+            '{{title}}': title,
+            '{{position}}': position or '',
+            '{{sender_first_name}}': sender_first,
+        }
+
+        rendered = template
+        # simple literal replacement
+        for token, value in replacements.items():
+            rendered = rendered.replace(token, value or '')
+
+        return rendered
+
     return compact_text[:max_chars]
 
 
@@ -256,7 +291,9 @@ def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, 
                 _time.sleep(0.6)
             try:
                 if use_draft_for_all and draft_subject and draft_body:
-                    subject, body = draft_subject, draft_body
+                    # Render per-contact tokens into the draft before sending
+                    subject = render_template(draft_subject, contact, position, sender_name)
+                    body = render_template(draft_body, contact, position, sender_name)
                 else:
                     subject, body = generate_cold_email(resume_text, position, sender_name, contact)
                 send_email_with_resume(

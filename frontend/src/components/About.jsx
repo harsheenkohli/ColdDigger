@@ -3,7 +3,7 @@ const About = () => {
     {
       number: "01",
       title: "Upload your resume",
-      description: "Drop in your PDF resume. Gemini reads it and pulls out your real experience, skills and projects to write from.",
+      description: "Drop in your PDF resume. AI reads it and pulls out your real experience, skills and projects to write from.",
     },
     {
       number: "02",
@@ -13,7 +13,7 @@ const About = () => {
     {
       number: "03",
       title: "Send",
-      description: "Hit the button. Gemini writes a personalised email for each contact, adjusts the tone based on their job title and sends it with your resume attached.",
+      description: "Hit the button. AI writes a personalised email for each contact, adjusts the tone based on their job title and sends it with your resume attached.",
     },
   ];
 
@@ -32,7 +32,7 @@ const About = () => {
     },
     {
       title: "Company context",
-      description: "Gemini pulls in what it knows about the company to make each email feel specific rather than generic.",
+      description: "AI pulls in what it knows about the company to make each email feel specific rather than generic.",
     },
   ];
 

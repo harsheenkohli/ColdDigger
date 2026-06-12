@@ -112,7 +112,8 @@ def upload_files(request):
         csv_file = request.FILES.get('csv_file')
         if csv_file:
             try:
-                new_contacts_count = process_csv_file(csv_file, request.user)
+                replace = request.POST.get('replace_contacts', 'true').lower() == 'true'
+                new_contacts_count = process_csv_file(csv_file, request.user, replace=replace)
             except ValueError as e:
                 return JsonResponse({'error': str(e)}, status=400)
             except Exception as e:
@@ -171,7 +172,10 @@ def send_emails(request):
     if not user_resume.position:
         return JsonResponse({'error': 'Please set your target position first'}, status=400)
 
-    data = json.loads(request.body) if request.body else {}
+    try:
+        data = json.loads(request.body) if request.body else {}
+    except Exception:
+        data = {}
     contact_ids = data.get('contact_ids')
     qs = CompanyContact.objects.filter(user=request.user)
     if contact_ids:
@@ -307,7 +311,10 @@ def preview_email(request):
     if not user_resume.position:
         return JsonResponse({'error': 'Please set your target position first'}, status=400)
 
-    data = json.loads(request.body) if request.body else {}
+    try:
+        data = json.loads(request.body) if request.body else {}
+    except Exception:
+        data = {}
     contact_id = data.get('contact_id')
     if contact_id:
         contact = CompanyContact.objects.filter(user=request.user, id=contact_id).first()

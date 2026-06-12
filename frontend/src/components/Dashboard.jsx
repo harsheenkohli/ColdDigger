@@ -24,6 +24,8 @@ const Dashboard = () => {
   const [lastJob, setLastJob] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [replaceContacts, setReplaceContacts] = useState(true);
+  const [confirmReplace, setConfirmReplace] = useState(false);
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -78,16 +80,24 @@ const Dashboard = () => {
     setUploadStatus("");
 
     const resumeFile = document.getElementById('resume-upload').files[0];
+    const csvFile = document.getElementById('csv-upload').files[0];
+
     if (!position && !resumeFile) {
       setError("Please provide either a position or upload a resume");
       return;
     }
 
+    if (csvFile && replaceContacts && contactCount > 0 && !confirmReplace) {
+      setConfirmReplace(true);
+      return;
+    }
+
+    setConfirmReplace(false);
     const formData = new FormData();
-    const csvFile = document.getElementById('csv-upload').files[0];
     if (csvFile) formData.append('csv_file', csvFile);
     if (resumeFile) formData.append('resume', resumeFile);
     if (position) formData.append('position', position);
+    formData.append('replace_contacts', replaceContacts ? 'true' : 'false');
 
     try {
       const response = await api.post('/api/upload-files/', formData, {
@@ -96,7 +106,7 @@ const Dashboard = () => {
       const added = response.data.new_contacts_added;
       setUploadStatus(
         added
-          ? `Saved. ${added} contact${added === 1 ? '' : 's'} loaded.`
+          ? `Saved. ${added} contact${added === 1 ? '' : 's'} ${replaceContacts ? 'loaded' : 'added'}.`
           : 'Saved.'
       );
       if (csvFile) fetchContacts();
@@ -139,8 +149,8 @@ const Dashboard = () => {
     setPreview(null);
     setError('');
     try {
-      const firstSelected = contacts.find(c => selectedIds.has(c.id));
-      const res = await api.post('/api/preview-email/', { contact_id: firstSelected?.id });
+      const firstSelected = contacts.find(c => selectedIds.has(c.id)) || contacts[0];
+      const res = await api.post('/api/preview-email/', { contact_id: firstSelected?.id || null });
       setPreview(res.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Could not generate preview');
@@ -217,9 +227,35 @@ const Dashboard = () => {
             )}
           </div>
           <div className="file-upload">
-            <label htmlFor="csv-upload">Contact list (CSV) — replaces existing list</label>
+            <label htmlFor="csv-upload">Contact list (CSV)</label>
             <input type="file" id="csv-upload" accept=".csv" />
             <small>Columns: name, email, title, company</small>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.82rem', color: '#888' }}>
+                <input
+                  type="checkbox"
+                  checked={replaceContacts}
+                  onChange={(e) => setReplaceContacts(e.target.checked)}
+                  style={{ width: 'auto', cursor: 'pointer' }}
+                />
+                Replace existing contacts
+              </label>
+            </div>
+            {confirmReplace && (
+              <div style={{ marginTop: '0.5rem', padding: '0.75rem', background: 'rgba(240,165,0,0.08)', border: '1px solid rgba(240,165,0,0.3)', borderRadius: '8px' }}>
+                <p style={{ fontSize: '0.85rem', color: '#f0a500', marginBottom: '0.5rem' }}>
+                  This will delete your {contactCount} existing contact{contactCount === 1 ? '' : 's'} and replace them. Are you sure?
+                </p>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button type="submit" className="btn" style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem', flex: 1 }}>
+                    Yes, replace
+                  </button>
+                  <button type="button" className="btn" onClick={() => setConfirmReplace(false)} style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem', flex: 1 }}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <button type="submit" className="btn submit-btn">Save Profile</button>

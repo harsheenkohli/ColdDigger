@@ -16,6 +16,8 @@ export const AuthProvider = ({ children }) => {
       const response = await api.get("/api/check-auth/");
       if (response.data.isAuthenticated) {
         setUser(response.data.user);
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error("Auth check failed:", error);

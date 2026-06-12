@@ -1,11 +1,17 @@
+/* Hero — soft pastel aurora gradient inspired by Apple */
 .jumbotron {
-  color: white;
-  padding: 4rem 2rem;
+  color: #1d1d1f;
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  background: linear-gradient(160deg,
+    #dbeafe 0%,
+    #ede9fe 35%,
+    #fce7f3 65%,
+    #f5f5f7 100%
+  );
 }
 
 .jumbotron p {
@@ -32,6 +38,10 @@
 .about-hero {
   text-align: center;
   padding: 3rem 0 2rem;
+  background: linear-gradient(160deg, #dbeafe 0%, #ede9fe 50%, #fce7f3 100%);
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  margin-bottom: 2rem;
 }
 
 .about-hero h1 {
@@ -39,31 +49,28 @@
   font-weight: 700;
   letter-spacing: -0.03em;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1d1d1f;
 }
 
 .about-subtitle {
   font-size: 1.05rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: #6e6e73;
   max-width: 520px;
   margin: 0 auto;
   line-height: 1.75;
 }
 
 .about-features {
-  margin: 3rem 0;
+  margin: 2.5rem 0;
 }
 
 .about-features h2,
 .about-steps h2 {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   margin-bottom: 1.25rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: #1d1d1f;
 }
 
 .features-grid {
@@ -73,34 +80,36 @@
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 16px;
   padding: 1.25rem 1.5rem;
-  transition: border-color 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .feature-card:hover {
-  border-color: rgba(102, 252, 241, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .feature-card h3 {
   font-size: 0.92rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
-  color: #f0f0f0;
+  color: #1d1d1f;
   letter-spacing: -0.01em;
 }
 
 .feature-card p {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: #6e6e73;
   margin: 0;
   line-height: 1.65;
 }
 
 .about-steps {
-  margin: 3rem 0;
+  margin: 2.5rem 0;
 }
 
 .steps-list {
@@ -118,7 +127,7 @@
 .step-number {
   font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #66fcf1, #45c2be);
+  background: linear-gradient(135deg, #0071e3, #34aadc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -130,13 +139,13 @@
   font-size: 0.92rem;
   font-weight: 600;
   margin: 0 0 0.35rem;
-  color: #f0f0f0;
+  color: #1d1d1f;
   letter-spacing: -0.01em;
 }
 
 .step-item p {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: #6e6e73;
   margin: 0;
   line-height: 1.65;
 }

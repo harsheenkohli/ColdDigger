@@ -5,8 +5,8 @@ import os
 import chardet
 from .models import CompanyContact
 
-def process_csv_file(csv_file, user):
-    """Process CSV file — replaces the user's existing contacts entirely."""
+def process_csv_file(csv_file, user, replace=True):
+    """Process CSV file — replaces or appends to the user's existing contacts."""
     raw_data = csv_file.read()
     result = chardet.detect(raw_data)
     encoding = result['encoding']
@@ -35,10 +35,15 @@ def process_csv_file(csv_file, user):
 
     rows = [row for row in reader]
 
-    CompanyContact.objects.filter(user=user).delete()
+    if replace:
+        CompanyContact.objects.filter(user=user).delete()
+
+    if not replace:
+        seen_emails = set(CompanyContact.objects.filter(user=user).values_list('email', flat=True))
+    else:
+        seen_emails = set()
 
     new_contacts = []
-    seen_emails = set()
     for row in rows:
         email = row['email'].strip()
         if not email or email in seen_emails:
@@ -111,7 +116,7 @@ def generate_cold_email(resume_text, position, sender_name, contact):
     """Call Gemini to generate a subject line and email body with zero placeholders."""
     import time as _time
     genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
 
     tone = _tone_for_title(contact.title)
 

@@ -166,10 +166,10 @@ const Dashboard = () => {
       const firstSelected = contacts.find(c => selectedIds.has(c.id)) || contacts[0];
       const res = await api.post('/api/preview-email/', { contact_id: firstSelected?.id || null });
       setPreview(res.data);
-      // Prefer the tokenized template when available so the first preview shows {{}} placeholders
+      // Prefer the actual AI response, fallback to template only if empty
       setEditablePreview({
-        subject: res.data.template_subject || res.data.subject || '',
-        body: res.data.template_body || res.data.body || '',
+        subject: res.data.subject || res.data.template_subject || '',
+        body: res.data.body || res.data.template_body || '',
       });
     } catch (err) {
       setError(err.response?.data?.error || 'Could not generate preview');
@@ -400,6 +400,11 @@ const Dashboard = () => {
             <p style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.5rem' }}>
               Preview for {preview.recipient.name} — {preview.recipient.title} at {preview.recipient.company}
             </p>
+            {preview.error && (
+              <div style={{ background: 'rgba(220,53,69,0.1)', border: '1px solid rgba(220,53,69,0.3)', color: '#ff6b6b', padding: '0.75rem', borderRadius: '6px', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+                <strong>Warning:</strong> {preview.error}
+              </div>
+            )}
             <p style={{ fontSize: '0.75rem', color: '#aaa', marginBottom: '0.75rem' }}>
               This is a sample draft. By default, each sent email is personalized per recipient.
             </p>

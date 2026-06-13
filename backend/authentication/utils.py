@@ -162,6 +162,7 @@ def render_template(template, contact, position, sender_name):
 
 def generate_cold_email(resume_text, position, sender_name, contact):
     """Call Gemini to generate a subject line and email body with zero placeholders."""
+    import re
     import time as _time
     genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
     model = genai.GenerativeModel('gemini-2.0-flash')
@@ -224,19 +225,20 @@ BODY:
             # Remove markdown bolding which can break parsing
             text = response.text.strip().replace('**', '')
 
-            subject = ''
-            body_lines = []
-            in_body = False
+            # Robust extraction ignoring case and spacing
+            subject_match = re.search(r'(?i)SUBJECT\s*:\s*(.*)', text)
+            subject = subject_match.group(1).strip() if subject_match else ''
+            
+            body_match = re.search(r'(?i)BODY\s*:\s*(.*)', text, flags=re.DOTALL)
+            if body_match:
+                body = body_match.group(1).strip()
+            else:
+                # If Gemini misses the 'BODY:' tag, use everything except the subject line
+                if subject_match:
+                    body = text.replace(subject_match.group(0), '').strip()
+                else:
+                    body = text.strip()
 
-            for line in text.split('\n'):
-                if line.startswith('SUBJECT:'):
-                    subject = line.replace('SUBJECT:', '').strip()
-                elif line.startswith('BODY:'):
-                    in_body = True
-                elif in_body:
-                    body_lines.append(line)
-
-            body = '\n'.join(body_lines).strip()
             if not subject:
                 subject = f"{position} Application - {sender_name}"
 

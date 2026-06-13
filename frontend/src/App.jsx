@@ -10,8 +10,6 @@ import ContactForm from './components/ContactForm';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './components/NotFound';
 import Footer from './components/Footer';
-import Profile from './components/Profile';
-import ForgotPassword from './components/ForgotPassword';
 import './App.css';
 
 const App = () => {
@@ -27,15 +25,6 @@ const App = () => {
               <Route path="/contact" element={<ContactForm />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } 
-              />
               <Route 
                 path="/dashboard" 
                 element={

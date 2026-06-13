@@ -165,8 +165,7 @@ def generate_cold_email(resume_text, position, sender_name, contact):
     import re
     import time as _time
     genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
-    model = genai.GenerativeModel('gemini-2.0-flash')
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 
     tone = _tone_for_title(contact.title)
     compact_resume_text = _compact_resume_text(resume_text)

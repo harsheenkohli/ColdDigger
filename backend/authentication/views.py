@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 import json
+import random
 
 import os
 import threading
@@ -83,6 +84,94 @@ def check_auth(request):
             }
         })
     return JsonResponse({'isAuthenticated': False})
+
+@csrf_exempt
+def update_profile(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            name = data.get('name', '').strip()
+            if name:
+                request.user.first_name = name
+                request.user.save()
+                return JsonResponse({'message': 'Profile updated successfully', 'name': name})
+            return JsonResponse({'error': 'Name cannot be empty'}, status=400)
+        except Exception:
+            return JsonResponse({'error': 'Failed to update profile'}, status=400)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def request_password_reset(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email', '').strip().lower()
+            if not email:
+                return JsonResponse({'error': 'Email is required'}, status=400)
+            
+            user = User.objects.filter(email__iexact=email).first()
+            if not user:
+                return JsonResponse({'message': 'If an account with that email exists, an OTP has been sent.'})
+            
+            otp = str(random.randint(100000, 999999))
+            cache.set(f'pwd_reset_{email}', otp, timeout=900)
+            
+            smtp_email = os.environ.get('SMTP_EMAIL')
+            smtp_password = os.environ.get('SMTP_PASSWORD')
+            if smtp_email and smtp_password:
+                import smtplib
+                from email.mime.text import MIMEText
+                from email.mime.multipart import MIMEMultipart as _MIMEMultipart
+
+                msg = _MIMEMultipart()
+                msg['From'] = smtp_email
+                msg['To'] = email
+                msg['Subject'] = "ColdDigger: Password Reset OTP"
+                body = f"Hi {user.first_name or 'there'},\n\nYour password reset OTP is: {otp}\n\nThis code will expire in 15 minutes.\n\nIf you did not request this, please ignore this email."
+                msg.attach(MIMEText(body, 'plain'))
+
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                    server.login(smtp_email, smtp_password)
+                    server.sendmail(smtp_email, email, msg.as_string())
+            else:
+                return JsonResponse({'error': 'SMTP is not configured on the server.'}, status=500)
+            
+            return JsonResponse({'message': 'If an account with that email exists, an OTP has been sent.'})
+        except Exception as e:
+            return JsonResponse({'error': 'Failed to send OTP. Please try again later.'}, status=500)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def reset_password(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email', '').strip().lower()
+            otp = data.get('otp', '').strip()
+            new_password = data.get('new_password', '')
+            
+            if not email or not otp or not new_password:
+                return JsonResponse({'error': 'All fields are required'}, status=400)
+            
+            if len(new_password) < 8:
+                return JsonResponse({'error': 'Password must be at least 8 characters'}, status=400)
+                
+            cached_otp = cache.get(f'pwd_reset_{email}')
+            if not cached_otp or cached_otp != otp:
+                return JsonResponse({'error': 'Invalid or expired OTP. Please request a new one.'}, status=400)
+                
+            user = User.objects.filter(email__iexact=email).first()
+            if user:
+                user.set_password(new_password)
+                user.save()
+                cache.delete(f'pwd_reset_{email}')
+                return JsonResponse({'message': 'Password reset successfully!'})
+            return JsonResponse({'error': 'User not found'}, status=404)
+        except Exception:
+            return JsonResponse({'error': 'Failed to reset password'}, status=400)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 @csrf_exempt

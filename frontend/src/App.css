@@ -120,6 +120,11 @@
   color: #0071e3;
 }
 
+.dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #0071e3 !important;
+}
+
 /* Forms */
 form {
   display: flex;

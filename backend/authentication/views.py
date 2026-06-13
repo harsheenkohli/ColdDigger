@@ -121,20 +121,26 @@ def request_password_reset(request):
             smtp_email = os.environ.get('SMTP_EMAIL')
             smtp_password = os.environ.get('SMTP_PASSWORD')
             if smtp_email and smtp_password:
-                import smtplib
-                from email.mime.text import MIMEText
-                from email.mime.multipart import MIMEMultipart as _MIMEMultipart
+                def send_otp_email():
+                    try:
+                        import smtplib
+                        from email.mime.text import MIMEText
+                        from email.mime.multipart import MIMEMultipart as _MIMEMultipart
 
-                msg = _MIMEMultipart()
-                msg['From'] = smtp_email
-                msg['To'] = email
-                msg['Subject'] = "ColdDigger: Password Reset OTP"
-                body = f"Hi {user.first_name or 'there'},\n\nYour password reset OTP is: {otp}\n\nThis code will expire in 15 minutes.\n\nIf you did not request this, please ignore this email."
-                msg.attach(MIMEText(body, 'plain'))
+                        msg = _MIMEMultipart()
+                        msg['From'] = smtp_email
+                        msg['To'] = email
+                        msg['Subject'] = "ColdDigger: Password Reset OTP"
+                        body = f"Hi {user.first_name or 'there'},\n\nYour password reset OTP is: {otp}\n\nThis code will expire in 15 minutes.\n\nIf you did not request this, please ignore this email."
+                        msg.attach(MIMEText(body, 'plain'))
 
-                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                    server.login(smtp_email, smtp_password)
-                    server.sendmail(smtp_email, email, msg.as_string())
+                        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10) as server:
+                            server.login(smtp_email, smtp_password)
+                            server.sendmail(smtp_email, email, msg.as_string())
+                    except Exception as e:
+                        print(f"Failed to send OTP email: {e}")
+                        
+                threading.Thread(target=send_otp_email, daemon=True).start()
             else:
                 return JsonResponse({'error': 'SMTP is not configured on the server.'}, status=500)
             
@@ -356,20 +362,26 @@ def contact_us(request):
         smtp_password = os.environ.get('SMTP_PASSWORD')
 
         if smtp_email and smtp_password:
-            import smtplib
-            from email.mime.text import MIMEText
-            from email.mime.multipart import MIMEMultipart as _MIMEMultipart
+            def send_contact_email():
+                try:
+                    import smtplib
+                    from email.mime.text import MIMEText
+                    from email.mime.multipart import MIMEMultipart as _MIMEMultipart
 
-            msg = _MIMEMultipart()
-            msg['From'] = smtp_email
-            msg['To'] = smtp_email
-            msg['Reply-To'] = email
-            msg['Subject'] = f"ColdDigger Contact: {name}"
-            msg.attach(MIMEText(f"From: {name} <{email}>\n\n{message}", 'plain'))
+                    msg = _MIMEMultipart()
+                    msg['From'] = smtp_email
+                    msg['To'] = smtp_email
+                    msg['Reply-To'] = email
+                    msg['Subject'] = f"ColdDigger Contact: {name}"
+                    msg.attach(MIMEText(f"From: {name} <{email}>\n\n{message}", 'plain'))
 
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                server.login(smtp_email, smtp_password)
-                server.sendmail(smtp_email, smtp_email, msg.as_string())
+                    with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10) as server:
+                        server.login(smtp_email, smtp_password)
+                        server.sendmail(smtp_email, smtp_email, msg.as_string())
+                except Exception as e:
+                    print(f"Failed to send contact email: {e}")
+                    
+            threading.Thread(target=send_contact_email, daemon=True).start()
 
         return JsonResponse({'message': 'Message sent! We will get back to you shortly.'})
 

@@ -168,10 +168,6 @@ const About = () => {
                 alignItems: 'center'
               }}>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, rgba(147,197,253,0.2) 0%, rgba(196,181,253,0.2) 40%, rgba(249,168,212,0.2) 100%)',
                   width: '56px',
                   height: '56px',
                   borderRadius: '16px',
@@ -179,11 +175,9 @@ const About = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: '1.5rem'
                   marginBottom: '1.5rem',
                   border: '1px solid rgba(196,181,253,0.2)'
                 }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'linear-gradient(135deg, #93c5fd 0%, #c4b5fd 40%, #f9a8d4 100%)' }}></div>
                   {f.icon}
                 </div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1d1d1f', marginBottom: '1rem', letterSpacing: '-0.01em' }}>{f.title}</h3>

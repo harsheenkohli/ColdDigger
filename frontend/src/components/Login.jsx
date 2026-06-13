@@ -71,6 +71,13 @@ const Login = () => {
       <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#6e6e73' }}>
         <Link to="/signup">New here? Create an account</Link>
       </p>
+      <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'rgba(240,165,0,0.08)', borderRadius: '8px', border: '1px solid rgba(240,165,0,0.3)', textAlign: 'left' }}>
+        <p style={{ margin: 0, fontSize: '0.85rem', color: '#f0a500', lineHeight: '1.6' }}>
+          <strong style={{ color: '#ffc107' }}>Test Credentials</strong><br />
+          Email: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '0.1rem 0.4rem', borderRadius: '4px', color: '#fff' }}>colddigger14@gmail.com</code><br />
+          Password: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '0.1rem 0.4rem', borderRadius: '4px', color: '#fff' }}>WeWillWin</code>
+        </p>
+      </div>
     </div>
   );
 };

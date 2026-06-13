@@ -320,7 +320,7 @@ const Dashboard = () => {
           <div className="file-upload" style={{ marginTop: '0.5rem' }}>
             <label>Additional Attachments (Optional, max 3)</label>
             <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '-0.3rem', marginBottom: '0.5rem' }}>
-              Cover letters, Portfolios, or LORs. These will be sent along with your resume.
+              Cover letters, Portfolios or LORs. These will be sent along with your resume.
             </p>
             
             {extraAttachments.length > 0 && (

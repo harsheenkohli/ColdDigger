@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [replaceContacts, setReplaceContacts] = useState(true);
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [hasCsvFile, setHasCsvFile] = useState(false);
+  const [pendingExtras, setPendingExtras] = useState({});
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -128,6 +129,7 @@ const Dashboard = () => {
       
       // Clear the extra inputs after save so they don't re-upload
       [1, 2, 3].forEach(id => { const el = document.getElementById(`extra-upload-${id}`); if (el) el.value = ''; });
+      setPendingExtras({});
       
       if (csvFile) fetchContacts();
       if (csvFile) {
@@ -283,6 +285,8 @@ const Dashboard = () => {
     );
   }
 
+  const hasExtraFiles = extraAttachments.length > 0 || Object.values(pendingExtras).some(Boolean);
+
   return (
     <div className="container">
       <h3>Dashboard</h3>
@@ -338,7 +342,14 @@ const Dashboard = () => {
               const isUsed = extraAttachments.find(e => e.id === slotId);
               if (isUsed) return null;
               return (
-                <input key={slotId} type="file" id={`extra-upload-${slotId}`} accept=".pdf" style={{ marginBottom: '0.5rem' }} />
+                <input 
+                  key={slotId} 
+                  type="file" 
+                  id={`extra-upload-${slotId}`} 
+                  accept=".pdf" 
+                  style={{ marginBottom: '0.5rem' }} 
+                  onChange={(e) => setPendingExtras(prev => ({ ...prev, [slotId]: e.target.files.length > 0 }))}
+                />
               );
             })}
             
@@ -349,7 +360,13 @@ const Dashboard = () => {
                 value={attachmentsContext} 
                 onChange={(e) => setAttachmentsContext(e.target.value)} 
                 placeholder="e.g. Portfolio and Letter of Recommendation" 
-                style={{ background: '#f9f9fb', width: '100%' }} 
+                disabled={!hasExtraFiles}
+                style={{ 
+                  background: hasExtraFiles ? '#f9f9fb' : '#e5e5ea', 
+                  width: '100%', 
+                  cursor: hasExtraFiles ? 'text' : 'not-allowed',
+                  opacity: hasExtraFiles ? 1 : 0.6
+                }} 
               />
               <small style={{ color: '#888', marginTop: '-0.2rem' }}>AI will mention these in the email so the recruiter knows to look for them.</small>
             </div>

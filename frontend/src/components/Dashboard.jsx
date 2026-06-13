@@ -362,9 +362,9 @@ const Dashboard = () => {
                     <td style={{ padding: '0.3rem 0.5rem', color: '#999' }}>{c.title}</td>
                     <td style={{ padding: '0.3rem 0.5rem', textAlign: 'center' }}>
                       {c.emailed_at ? (
-                        <span style={{ color: '#66fcf1', fontSize: '0.75rem' }}>Sent</span>
+                        <span style={{ color: '#66fcf1', fontSize: '0.75rem' }}>Yes</span>
                       ) : (
-                        <span style={{ color: '#555', fontSize: '0.75rem' }}>-</span>
+                        <span style={{ color: '#555', fontSize: '0.75rem' }}>No</span>
                       )}
                     </td>
                   </tr>
@@ -478,7 +478,7 @@ const Dashboard = () => {
                 {jobProgress.results.map((r, i) => (
                   <div key={i} style={{ display: 'flex', flexDirection: 'column', fontSize: '0.8rem', padding: '0.4rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#ccc' }}>{r.name} — {r.company}</span>
+                    <span style={{ color: '#ccc' }}>{r.name} ({r.email}) — {r.company}</span>
                     <span style={{ color: r.status === 'sent' ? '#28a745' : '#dc3545' }}>{r.status}</span>
                     </div>
                     {r.error && (
@@ -499,7 +499,7 @@ const Dashboard = () => {
                 {lastJob.results.map((r, i) => (
                   <div key={i} style={{ display: 'flex', flexDirection: 'column', fontSize: '0.8rem', padding: '0.4rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#ccc' }}>{r.name} - {r.company}</span>
+                    <span style={{ color: '#ccc' }}>{r.name} ({r.email}) - {r.company}</span>
                     <span style={{ color: r.status === 'sent' ? '#28a745' : '#dc3545' }}>{r.status}</span>
                     </div>
                     {r.error && (

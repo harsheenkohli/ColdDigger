@@ -165,6 +165,7 @@ def generate_cold_email(resume_text, position, sender_name, contact):
     import time as _time
     genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
     model = genai.GenerativeModel('gemini-2.0-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     tone = _tone_for_title(contact.title)
     compact_resume_text = _compact_resume_text(resume_text)
@@ -215,8 +216,13 @@ BODY:
         try:
             if attempt > 0:
                 _time.sleep(2 ** attempt)
+            print(f"\n--- HITTING GEMINI (Attempt {attempt + 1}) ---")
             response = model.generate_content(prompt)
             text = response.text.strip()
+            print("--- GEMINI RESPONSE ---")
+            print(response.text)
+            # Remove markdown bolding which can break parsing
+            text = response.text.strip().replace('**', '')
 
             subject = ''
             body_lines = []
@@ -237,6 +243,7 @@ BODY:
             return subject, body
         except Exception as e:
             last_error = e
+            print(f"--- GEMINI ERROR on attempt {attempt + 1} ---: {e}")
             error_text = str(e).lower()
             if '429' in error_text or 'quota' in error_text or 'rate limit' in error_text:
                 return build_fallback_email()

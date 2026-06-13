@@ -51,7 +51,6 @@ const Dashboard = () => {
       setContactCount(res.data.count);
       setContacts(res.data.contacts);
       setSelectedIds(new Set(res.data.contacts.map(c => c.id)));
-      setSelectedIds(new Set(res.data.contacts.filter(c => !c.emailed_at).map(c => c.id)));
     } catch (err) {
       // silently ignore
     }
@@ -137,7 +136,6 @@ const Dashboard = () => {
       setContacts([]);
       setSelectedIds(new Set());
       setUploadStatus('Contact list cleared.');
-      setUploadStatus('Contact list cleared');
     } catch (err) {
       setError('Could not clear contacts.');
     }

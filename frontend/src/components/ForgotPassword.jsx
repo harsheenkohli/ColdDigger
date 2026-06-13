@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 
@@ -12,6 +13,17 @@ const ForgotPassword = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [timer, setTimer] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   const handleRequestOTP = async (e) => {
     e.preventDefault();
@@ -22,6 +34,7 @@ const ForgotPassword = () => {
       const res = await api.post("/api/request-password-reset/", { email });
       setStatus(res.data.message);
       setStep(2);
+      setTimer(30);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to send OTP.");
     } finally {
@@ -56,6 +69,7 @@ const ForgotPassword = () => {
     try {
       await api.post("/api/request-password-reset/", { email });
       setStatus("A fresh OTP has been sent to your email.");
+      setTimer(30);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to resend OTP.");
     } finally {
@@ -74,6 +88,7 @@ const ForgotPassword = () => {
             <span>{error}</span>
             {error.includes("No account found") && (
               <Link to="/signup" className="btn submit-btn" style={{ padding: '0.6rem 1.25rem', fontSize: '0.85rem', width: 'auto', textDecoration: 'none', marginTop: '0.5rem' }}>
+              <Link to="/signup" className="btn" style={{ background: '#1d1d1f', color: '#ffffff', padding: '0.6rem 1.25rem', fontSize: '0.85rem', width: 'auto', textDecoration: 'none', marginTop: '0.5rem' }}>
                 Create an account
               </Link>
             )}
@@ -140,8 +155,11 @@ const ForgotPassword = () => {
                 onClick={handleResendOTP} 
                 disabled={resendLoading || loading}
                 style={{ background: 'none', border: 'none', color: '#0071e3', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'none', fontWeight: 500 }}
+                disabled={resendLoading || loading || timer > 0}
+                style={{ background: 'none', border: 'none', color: (timer > 0 || resendLoading || loading) ? '#888' : '#0071e3', fontSize: '0.85rem', cursor: (timer > 0 || resendLoading || loading) ? 'not-allowed' : 'pointer', textDecoration: 'none', fontWeight: 500 }}
               >
                 {resendLoading ? "Sending new code..." : "Didn't receive it? Resend OTP"}
+                {resendLoading ? "Sending new code..." : (timer > 0 ? `Resend OTP in ${timer}s` : "Didn't receive it? Resend OTP")}
               </button>
             </div>
           </form>

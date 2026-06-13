@@ -54,7 +54,6 @@ const Dashboard = () => {
       const res = await api.get('/api/contacts/');
       setContactCount(res.data.count);
       setContacts(res.data.contacts);
-      setSelectedIds(new Set(res.data.contacts.map(c => c.id)));
       setSelectedIds(new Set(res.data.contacts.filter(c => !c.emailed_at).map(c => c.id)));
     } catch (err) {
       // silently ignore
@@ -175,7 +174,6 @@ const Dashboard = () => {
   const handleDownloadFile = async (e, isExtra = false, extraId = null, filename) => {
     e.preventDefault();
     try {
-      const res = await api.get('/api/download-resume/', { responseType: 'blob' });
       const urlPath = isExtra ? `/api/download-resume/?extra=${extraId}` : `/api/download-resume/`;
       const res = await api.get(urlPath, { responseType: 'blob' });
       const blob = new Blob([res.data], { type: 'application/pdf' });
@@ -184,7 +182,6 @@ const Dashboard = () => {
       // Create an ephemeral link to force a robust download
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', savedResume || 'resume.pdf');
       link.setAttribute('download', filename || 'document.pdf');
       document.body.appendChild(link);
       link.click();
@@ -193,7 +190,6 @@ const Dashboard = () => {
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      setProfileError('Could not download resume.');
       setProfileError('Could not download file.');
     }
   };

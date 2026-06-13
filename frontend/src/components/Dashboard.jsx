@@ -117,6 +117,7 @@ const Dashboard = () => {
       if (resumeFile) fetchResume();
     } catch (err) {
       setProfileError(err.response?.data?.error || 'Upload failed');
+      setProfileError(err.response?.data?.error || 'Upload failed. Please check your connection and try again.');
     }
   };
 
@@ -138,6 +139,7 @@ const Dashboard = () => {
       setUploadStatus('Contact list cleared.');
     } catch (err) {
       setProfileError('Could not clear contacts.');
+      setProfileError('Could not clear contacts. Please try again.');
     }
   };
 
@@ -160,6 +162,7 @@ const Dashboard = () => {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       setProfileError('Could not download resume.');
+      setProfileError('Could not download resume. Please try again.');
     }
   };
 
@@ -195,6 +198,7 @@ const Dashboard = () => {
       });
     } catch (err) {
       setPreviewError(err.response?.data?.error || 'Could not generate preview');
+      setPreviewError(err.response?.data?.error || 'Could not generate preview. Please try again.');
     } finally {
       setLoadingPreview(false);
     }
@@ -229,10 +233,12 @@ const Dashboard = () => {
           clearInterval(pollRef.current);
           setSending(false);
           setSendError('Lost connection to job. Check back later.');
+          setSendError('Lost connection to the server. Please check your internet and refresh the page.');
         }
       }, 3000);
     } catch (err) {
       setSendError(err.response?.data?.error || 'Failed to start email job');
+      setSendError(err.response?.data?.error || 'Failed to start email job. Please try again.');
       setSending(false);
     }
   };

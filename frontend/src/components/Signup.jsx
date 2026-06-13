@@ -66,13 +66,6 @@ const Signup = () => {
       <p>
         <Link to="/login">Already have an account? Login</Link>
       </p>
-      <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
-        <p style={{ margin: 0, fontSize: '0.85rem', color: '#aaa', lineHeight: '1.6' }}>
-          <strong style={{ color: '#ccc' }}>Want to skip signing up? Use our Test Account:</strong><br />
-          Email: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>colddigger14@gmail.com</code><br />
-          Password: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>WeWillWin</code>
-        </p>
-      </div>
     </div>
   );
 };

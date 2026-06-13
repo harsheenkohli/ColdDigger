@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [savedResume, setSavedResume] = useState('');
+  const [extraAttachments, setExtraAttachments] = useState([]);
   const [lastJob, setLastJob] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -64,6 +65,7 @@ const Dashboard = () => {
       const res = await api.get('/api/user-resume/');
       const filename = res.data.resume_filename || res.data.resume_url.split('/').pop().split('?')[0];
       setSavedResume(decodeURIComponent(filename));
+      setExtraAttachments(res.data.extra_attachments || []);
     } catch (err) {
       // no resume yet
     }
@@ -86,6 +88,10 @@ const Dashboard = () => {
     const resumeFile = document.getElementById('resume-upload').files[0];
     const csvFile = document.getElementById('csv-upload').files[0];
 
+    const extra1 = document.getElementById('extra-upload-1')?.files[0];
+    const extra2 = document.getElementById('extra-upload-2')?.files[0];
+    const extra3 = document.getElementById('extra-upload-3')?.files[0];
+
     if (!position && !resumeFile) {
       setProfileError("Please provide either a position or upload a resume");
       return;
@@ -101,6 +107,9 @@ const Dashboard = () => {
     if (csvFile) formData.append('csv_file', csvFile);
     if (resumeFile) formData.append('resume', resumeFile);
     if (position) formData.append('position', position);
+    if (extra1) formData.append('extra_1', extra1);
+    if (extra2) formData.append('extra_2', extra2);
+    if (extra3) formData.append('extra_3', extra3);
     formData.append('replace_contacts', replaceContacts ? 'true' : 'false');
 
     try {
@@ -113,8 +122,13 @@ const Dashboard = () => {
           ? `Saved. ${added} contact${added === 1 ? '' : 's'} ${replaceContacts ? 'loaded' : 'added'}.`
           : 'Saved.'
       );
+      
+      // Clear the extra inputs after save so they don't re-upload
+      [1, 2, 3].forEach(id => { const el = document.getElementById(`extra-upload-${id}`); if (el) el.value = ''; });
+      
       if (csvFile) fetchContacts();
       if (resumeFile) fetchResume();
+      fetchResume(); // Always fetch to guarantee we see our new attachments
     } catch (err) {
       setProfileError(err.response?.data?.error || 'Upload failed');
     }
@@ -141,10 +155,26 @@ const Dashboard = () => {
     }
   };
 
-  const handleDownloadResume = async (e) => {
+  const handleDeleteExtra = async (id) => {
+    if (!window.confirm("Delete this attachment?")) return;
+    try {
+      const formData = new FormData();
+      formData.append(`delete_extra_${id}`, 'true');
+      await api.post('/api/upload-files/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      fetchResume(); // Refresh list immediately
+    } catch (err) {
+      setProfileError('Failed to delete attachment.');
+    }
+  };
+
+  const handleDownloadFile = async (e, isExtra = false, extraId = null, filename) => {
     e.preventDefault();
     try {
       const res = await api.get('/api/download-resume/', { responseType: 'blob' });
+      const urlPath = isExtra ? `/api/download-resume/?extra=${extraId}` : `/api/download-resume/`;
+      const res = await api.get(urlPath, { responseType: 'blob' });
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       
@@ -152,6 +182,7 @@ const Dashboard = () => {
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', savedResume || 'resume.pdf');
+      link.setAttribute('download', filename || 'document.pdf');
       document.body.appendChild(link);
       link.click();
       
@@ -160,6 +191,7 @@ const Dashboard = () => {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       setProfileError('Could not download resume.');
+      setProfileError('Could not download file.');
     }
   };
 
@@ -268,12 +300,43 @@ const Dashboard = () => {
             <input type="file" id="resume-upload" accept=".pdf" />
             {savedResume && (
               <small>
-                <button type="button" onClick={handleDownloadResume} style={{ background: 'none', border: 'none', color: '#0071e3', fontSize: '0.82rem', padding: 0, cursor: 'pointer', textDecoration: 'underline' }}>
+                <button type="button" onClick={(e) => handleDownloadFile(e, false, null, savedResume)} style={{ background: 'none', border: 'none', color: '#0071e3', fontSize: '0.82rem', padding: 0, cursor: 'pointer', textDecoration: 'underline' }}>
                   {savedResume}
                 </button>
               </small>
             )}
           </div>
+
+          <div className="file-upload" style={{ marginTop: '0.5rem' }}>
+            <label>Additional Attachments (Optional, max 3)</label>
+            <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '-0.3rem', marginBottom: '0.5rem' }}>
+              Cover letters, Portfolios, or LORs. These will be sent along with your resume.
+            </p>
+            
+            {extraAttachments.length > 0 && (
+              <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {extraAttachments.map((file) => (
+                  <div key={file.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', padding: '0.5rem 0.75rem', borderRadius: '8px' }}>
+                    <button type="button" onClick={(e) => handleDownloadFile(e, true, file.id, file.filename)} style={{ background: 'none', border: 'none', color: '#0071e3', fontSize: '0.82rem', padding: 0, cursor: 'pointer', textDecoration: 'underline', textAlign: 'left', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {file.filename}
+                    </button>
+                    <button type="button" onClick={() => handleDeleteExtra(file.id)} style={{ background: 'none', border: 'none', color: '#ff3b30', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, paddingLeft: '1rem' }}>
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {[1, 2, 3].map(slotId => {
+              const isUsed = extraAttachments.find(e => e.id === slotId);
+              if (isUsed) return null;
+              return (
+                <input key={slotId} type="file" id={`extra-upload-${slotId}`} accept=".pdf" style={{ marginBottom: '0.5rem' }} />
+              );
+            })}
+          </div>
+
           <div className="file-upload">
             <label htmlFor="csv-upload">Contact list (CSV)</label>
             <input type="file" id="csv-upload" accept=".csv" />

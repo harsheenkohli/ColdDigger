@@ -21,10 +21,29 @@ const About = () => {
     {
       title: "Tone that fits",
       description: "A recruiter gets a different email than a CEO or an engineer. The tone shifts automatically based on job title.",
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="url(#icon-grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="4" y1="21" x2="4" y2="14" />
+          <line x1="4" y1="10" x2="4" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12" y2="3" />
+          <line x1="20" y1="21" x2="20" y2="16" />
+          <line x1="20" y1="12" x2="20" y2="3" />
+          <line x1="1" y1="14" x2="7" y2="14" />
+          <line x1="9" y1="8" x2="15" y2="8" />
+          <line x1="17" y1="16" x2="23" y2="16" />
+        </svg>
+      )
     },
     {
       title: "Company context",
       description: "AI pulls in what it knows about the company to make each email feel specific rather than generic.",
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="url(#icon-grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+        </svg>
+      )
     },
   ];
 
@@ -127,6 +146,15 @@ const About = () => {
             Why it works
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+            <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+              <defs>
+                <linearGradient id="icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#93c5fd" />
+                  <stop offset="40%" stopColor="#c4b5fd" />
+                  <stop offset="100%" stopColor="#f9a8d4" />
+                </linearGradient>
+              </defs>
+            </svg>
             {features.map((f) => (
               <div key={f.title} style={{
                 background: '#ffffff',
@@ -144,12 +172,19 @@ const About = () => {
                   height: '48px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, rgba(147,197,253,0.2) 0%, rgba(196,181,253,0.2) 40%, rgba(249,168,212,0.2) 100%)',
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, rgba(147,197,253,0.1) 0%, rgba(196,181,253,0.1) 40%, rgba(249,168,212,0.1) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '1.5rem'
+                  marginBottom: '1.5rem',
+                  border: '1px solid rgba(196,181,253,0.2)'
                 }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'linear-gradient(135deg, #93c5fd 0%, #c4b5fd 40%, #f9a8d4 100%)' }}></div>
+                  {f.icon}
                 </div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1d1d1f', marginBottom: '1rem', letterSpacing: '-0.01em' }}>{f.title}</h3>
                 <p style={{ fontSize: '1rem', color: '#6e6e73', lineHeight: 1.6, margin: 0 }}>{f.description}</p>

@@ -59,14 +59,11 @@ const Dashboard = () => {
     }
   };
 
-  const [savedResumeUrl, setSavedResumeUrl] = useState('');
-
   const fetchResume = async () => {
     try {
       const res = await api.get('/api/user-resume/');
       const filename = res.data.resume_filename || res.data.resume_url.split('/').pop().split('?')[0];
       setSavedResume(decodeURIComponent(filename));
-      setSavedResumeUrl('/api/download-resume/');
     } catch (err) {
       // no resume yet
     }
@@ -150,7 +147,17 @@ const Dashboard = () => {
       const res = await api.get('/api/download-resume/', { responseType: 'blob' });
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      
+      // Create an ephemeral link to force a robust download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', savedResume || 'resume.pdf');
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       setProfileError('Could not download resume.');
     }
@@ -261,10 +268,9 @@ const Dashboard = () => {
             <input type="file" id="resume-upload" accept=".pdf" />
             {savedResume && (
               <small>
-                <a href={savedResumeUrl} target="_blank" rel="noreferrer" style={{ color: '#0071e3', fontSize: '0.82rem' }}>
-                <a href="#" onClick={handleDownloadResume} style={{ color: '#0071e3', fontSize: '0.82rem' }}>
+                <button type="button" onClick={handleDownloadResume} style={{ background: 'none', border: 'none', color: '#0071e3', fontSize: '0.82rem', padding: 0, cursor: 'pointer', textDecoration: 'underline' }}>
                   {savedResume}
-                </a>
+                </button>
               </small>
             )}
           </div>

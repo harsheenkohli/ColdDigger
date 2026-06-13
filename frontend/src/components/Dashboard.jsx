@@ -144,6 +144,18 @@ const Dashboard = () => {
     }
   };
 
+  const handleDownloadResume = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.get('/api/download-resume/', { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      setProfileError('Could not download resume.');
+    }
+  };
+
   const toggleContact = (id) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -250,6 +262,7 @@ const Dashboard = () => {
             {savedResume && (
               <small>
                 <a href={savedResumeUrl} target="_blank" rel="noreferrer" style={{ color: '#0071e3', fontSize: '0.82rem' }}>
+                <a href="#" onClick={handleDownloadResume} style={{ color: '#0071e3', fontSize: '0.82rem' }}>
                   {savedResume}
                 </a>
               </small>

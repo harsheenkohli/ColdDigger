@@ -200,18 +200,6 @@ SUBJECT: <subject line>
 BODY:
 <email body>"""
 
-    def build_fallback_email():
-        resume_lines = [line.strip() for line in compact_resume_text.splitlines() if line.strip()]
-        highlight = resume_lines[0] if resume_lines else f"my background as a {position} candidate"
-        subject = f"{position} Application - {sender_name}"
-        body = (
-            f"Hi {contact.name.split()[0]},\n\n"
-            f"I’m reaching out about opportunities at {contact.company}. I’m applying for the {position} role and wanted to share my background. {highlight}.\n\n"
-            f"I’d love to connect and discuss how my experience could support your team at {contact.company}.\n\n"
-            f"Best,\n{sender_name.split()[0]}"
-        )
-        return subject, body
-
     last_error = None
     for attempt in range(3):
         try:
@@ -248,12 +236,12 @@ BODY:
             print(f"--- GEMINI ERROR on attempt {attempt + 1} ---: {e}")
             error_text = str(e).lower()
             if '429' in error_text or 'quota' in error_text or 'rate limit' in error_text:
-                return build_fallback_email()
+                raise e
 
     if last_error:
-        return build_fallback_email()
+        raise last_error
 
-    return build_fallback_email()
+    raise Exception("Failed to generate content. Please try again.")
 
 
 def send_email_with_resume(sender_name, sender_email, recipient_email, subject, body, resume_bytes, resume_filename, user=None):

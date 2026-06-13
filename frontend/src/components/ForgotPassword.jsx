@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
@@ -87,7 +86,6 @@ const ForgotPassword = () => {
           <div className="error-message" style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
             <span>{error}</span>
             {error.includes("No account found") && (
-              <Link to="/signup" className="btn submit-btn" style={{ padding: '0.6rem 1.25rem', fontSize: '0.85rem', width: 'auto', textDecoration: 'none', marginTop: '0.5rem' }}>
               <Link to="/signup" className="btn" style={{ background: '#1d1d1f', color: '#ffffff', padding: '0.6rem 1.25rem', fontSize: '0.85rem', width: 'auto', textDecoration: 'none', marginTop: '0.5rem' }}>
                 Create an account
               </Link>
@@ -153,12 +151,9 @@ const ForgotPassword = () => {
               <button 
                 type="button" 
                 onClick={handleResendOTP} 
-                disabled={resendLoading || loading}
-                style={{ background: 'none', border: 'none', color: '#0071e3', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'none', fontWeight: 500 }}
                 disabled={resendLoading || loading || timer > 0}
                 style={{ background: 'none', border: 'none', color: (timer > 0 || resendLoading || loading) ? '#888' : '#0071e3', fontSize: '0.85rem', cursor: (timer > 0 || resendLoading || loading) ? 'not-allowed' : 'pointer', textDecoration: 'none', fontWeight: 500 }}
               >
-                {resendLoading ? "Sending new code..." : "Didn't receive it? Resend OTP"}
                 {resendLoading ? "Sending new code..." : (timer > 0 ? `Resend OTP in ${timer}s` : "Didn't receive it? Resend OTP")}
               </button>
             </div>

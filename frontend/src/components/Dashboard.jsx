@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [replaceContacts, setReplaceContacts] = useState(true);
   const [confirmReplace, setConfirmReplace] = useState(false);
+  const [hasCsvFile, setHasCsvFile] = useState(false);
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -129,6 +130,12 @@ const Dashboard = () => {
       [1, 2, 3].forEach(id => { const el = document.getElementById(`extra-upload-${id}`); if (el) el.value = ''; });
       
       if (csvFile) fetchContacts();
+      if (csvFile) {
+        const csvEl = document.getElementById('csv-upload');
+        if (csvEl) csvEl.value = '';
+        setHasCsvFile(false);
+        fetchContacts();
+      }
       if (resumeFile) fetchResume();
       fetchResume(); // Always fetch to guarantee we see our new attachments
     } catch (err) {
@@ -285,7 +292,7 @@ const Dashboard = () => {
         <div className="upload-section">
           <h4>Profile</h4>
           <div className="file-upload">
-            <label htmlFor="position-input">Position applying for</label>
+            <label htmlFor="position-input">Position applying for <span style={{ color: '#ff3b30' }}>*</span></label>
             <input
               type="text"
               id="position-input"
@@ -295,7 +302,7 @@ const Dashboard = () => {
             />
           </div>
           <div className="file-upload">
-            <label htmlFor="resume-upload">Resume (PDF)</label>
+            <label htmlFor="resume-upload">Resume (PDF) <span style={{ color: '#ff3b30' }}>*</span></label>
             <input type="file" id="resume-upload" accept=".pdf" />
             {savedResume && (
               <small>
@@ -350,15 +357,16 @@ const Dashboard = () => {
 
           <div className="file-upload">
             <label htmlFor="csv-upload">Contact list (CSV)</label>
-            <input type="file" id="csv-upload" accept=".csv" />
+            <input type="file" id="csv-upload" accept=".csv" onChange={(e) => setHasCsvFile(e.target.files.length > 0)} />
             <small>Columns: name, email, title, company</small>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.82rem', color: '#888' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: hasCsvFile ? 'pointer' : 'not-allowed', fontSize: '0.82rem', color: hasCsvFile ? '#888' : '#555', opacity: hasCsvFile ? 1 : 0.6 }}>
                 <input
                   type="checkbox"
                   checked={replaceContacts}
                   onChange={(e) => setReplaceContacts(e.target.checked)}
-                  style={{ width: 'auto', cursor: 'pointer' }}
+                  disabled={!hasCsvFile}
+                  style={{ width: 'auto', cursor: hasCsvFile ? 'pointer' : 'not-allowed' }}
                 />
                 Replace existing contacts
               </label>

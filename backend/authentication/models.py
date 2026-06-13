@@ -42,6 +42,12 @@ class UserResume(models.Model):
     resume = models.FileField(upload_to='resumes/')
     resume_cloudinary_url = models.URLField(blank=True, default='')
     position = models.CharField(max_length=255, blank=True)
+
+    extra_attachment_1 = models.FileField(upload_to='extra_attachments/', blank=True, null=True)
+    extra_attachment_2 = models.FileField(upload_to='extra_attachments/', blank=True, null=True)
+    extra_attachment_3 = models.FileField(upload_to='extra_attachments/', blank=True, null=True)
+    attachments_context = models.CharField(max_length=255, blank=True, default='')
+
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

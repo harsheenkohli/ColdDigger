@@ -160,7 +160,7 @@ def render_template(template, contact, position, sender_name):
     return rendered
 
 
-def generate_cold_email(resume_text, position, sender_name, contact):
+def generate_cold_email(resume_text, position, sender_name, contact, attachments_context=""):
     """Call Gemini to generate a subject line and email body with zero placeholders."""
     import re
     import time as _time
@@ -191,6 +191,11 @@ POSITION APPLYING FOR: {position}
 RECIPIENT NAME: {contact.name}
 RECIPIENT TITLE: {contact.title}
 RECIPIENT COMPANY: {contact.company}
+"""
+    if attachments_context:
+        prompt += f"\nEXTRA ATTACHMENTS INCLUDED: {attachments_context}"
+        
+    prompt += f"""
 
 TONE: {tone}
 
@@ -203,7 +208,13 @@ RULES:
 6. Close with only the sender's first name as the signature.
 7. Do NOT include a subject line inside the body.
 8. Write continuous paragraphs. Do NOT use hard line breaks in the middle of sentences.
+"""
+    if attachments_context:
+        prompt += f"9. Mention that you have attached your resume along with your {attachments_context}.\n"
+    else:
+        prompt += "9. Mention that you have attached your resume for their review.\n"
 
+    prompt += """
 Output format — use these exact labels:
 SUBJECT: <subject line>
 BODY:
@@ -295,7 +306,7 @@ def send_email_with_resume(sender_name, sender_email, recipient_email, subject, 
         raise ConnectionError(f"Gmail API failed: {e}") from e
 
 
-def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, sender_name, sender_email, contacts, use_draft_for_all=False, draft_subject=None, draft_body=None):
+def run_email_job(job_id, resume_text, attachments, position, sender_name, sender_email, contacts, use_draft_for_all=False, draft_subject=None, draft_body=None, attachments_context=""):
     """Background thread: generates and sends one email per contact, updates EmailJob progress."""
     import time as _time
     from django.utils import timezone
@@ -320,7 +331,7 @@ def run_email_job(job_id, resume_text, resume_bytes, resume_filename, position, 
                     subject = render_template(draft_subject, contact, position, sender_name)
                     body = render_template(draft_body, contact, position, sender_name)
                 else:
-                    subject, body = generate_cold_email(resume_text, position, sender_name, contact)
+                    subject, body = generate_cold_email(resume_text, position, sender_name, contact, attachments_context)
                 send_email_with_resume(
                     sender_name, sender_email, contact.email,
                     subject, body, resume_bytes, resume_filename,

@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [contacts, setContacts] = useState([]);
   const [savedResume, setSavedResume] = useState('');
   const [extraAttachments, setExtraAttachments] = useState([]);
+  const [attachmentsContext, setAttachmentsContext] = useState('');
   const [lastJob, setLastJob] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -66,6 +67,7 @@ const Dashboard = () => {
       const filename = res.data.resume_filename || res.data.resume_url.split('/').pop().split('?')[0];
       setSavedResume(decodeURIComponent(filename));
       setExtraAttachments(res.data.extra_attachments || []);
+      setAttachmentsContext(res.data.attachments_context || '');
     } catch (err) {
       // no resume yet
     }
@@ -110,6 +112,7 @@ const Dashboard = () => {
     if (extra1) formData.append('extra_1', extra1);
     if (extra2) formData.append('extra_2', extra2);
     if (extra3) formData.append('extra_3', extra3);
+    formData.append('attachments_context', attachmentsContext);
     formData.append('replace_contacts', replaceContacts ? 'true' : 'false');
 
     try {
@@ -335,6 +338,18 @@ const Dashboard = () => {
                 <input key={slotId} type="file" id={`extra-upload-${slotId}`} accept=".pdf" style={{ marginBottom: '0.5rem' }} />
               );
             })}
+            
+            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <label style={{ fontSize: '0.82rem', color: '#6e6e73', fontWeight: 500 }}>Mention what these are (Optional)</label>
+              <input 
+                type="text" 
+                value={attachmentsContext} 
+                onChange={(e) => setAttachmentsContext(e.target.value)} 
+                placeholder="e.g. Portfolio and Letter of Recommendation" 
+                style={{ background: '#f9f9fb', width: '100%' }} 
+              />
+              <small style={{ color: '#888', marginTop: '-0.2rem' }}>AI will mention these in the email so the recruiter knows to look for them.</small>
+            </div>
           </div>
 
           <div className="file-upload">

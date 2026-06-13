@@ -196,9 +196,16 @@ def upload_files(request):
         if resume_file and not resume_file.name.lower().endswith('.pdf'):
             return JsonResponse({'error': 'Resume must be a PDF file.'}, status=400)
         position = request.POST.get('position', '')
+        attachments_context = request.POST.get('attachments_context')
         
         # Update or create resume with position
-        if resume_file or position:
+        has_extra = any([
+            request.FILES.get('extra_1'), request.FILES.get('extra_2'), request.FILES.get('extra_3'),
+            request.POST.get('delete_extra_1'), request.POST.get('delete_extra_2'), request.POST.get('delete_extra_3'),
+            attachments_context is not None
+        ])
+        
+        if resume_file or position or has_extra or attachments_context is not None:
             defaults = {}
             if resume_file:
                 # Save resume directly to FileField (no external upload needed)
@@ -207,6 +214,15 @@ def upload_files(request):
                 defaults['resume'] = ContentFile(resume_bytes, name=resume_file.name)
             if position:
                 defaults['position'] = position
+
+            for i in range(1, 4):
+                extra_file = request.FILES.get(f'extra_{i}')
+                if extra_file:
+                    defaults[f'extra_attachment_{i}'] = extra_file
+                elif request.POST.get(f'delete_extra_{i}') == 'true':
+                    defaults[f'extra_attachment_{i}'] = None
+            if attachments_context is not None:
+                defaults['attachments_context'] = attachments_context
 
             UserResume.objects.update_or_create(
                 user=request.user,
@@ -257,9 +273,17 @@ def get_user_resume(request):
         if not resume.resume or not resume.resume.name:
             return JsonResponse({'error': 'No resume found'}, status=404)
         resume_filename = os.path.basename(resume.resume.name) or 'resume.pdf'
+        
+        extra_attachments = []
+        for i, extra in enumerate([resume.extra_attachment_1, resume.extra_attachment_2, resume.extra_attachment_3], start=1):
+            if extra and extra.name:
+                extra_attachments.append({'id': i, 'filename': os.path.basename(extra.name)})
+                
         return JsonResponse({
             'resume_url': '/api/download-resume/',
             'resume_filename': resume_filename,
+            'extra_attachments': extra_attachments,
+            'attachments_context': resume.attachments_context,
             'updated_at': resume.updated_at
         })
     except UserResume.DoesNotExist:
@@ -310,6 +334,16 @@ def send_emails(request):
         return JsonResponse({'error': 'Could not load your resume file. Please try uploading it again.'}, status=400)
 
     resume_filename = os.path.basename(user_resume.resume.name) or 'resume.pdf'
+    attachments = [(resume_filename, resume_bytes)]
+    
+    for extra in [user_resume.extra_attachment_1, user_resume.extra_attachment_2, user_resume.extra_attachment_3]:
+        if extra and extra.name:
+            try:
+                extra_bytes = get_resume_content_bytes_from_file(extra)
+                attachments.append((os.path.basename(extra.name), extra_bytes))
+            except Exception:
+                pass
+                
     sender_name = request.user.first_name or request.user.email.split('@')[0]
     sender_email = request.user.email
 
@@ -320,8 +354,7 @@ def send_emails(request):
         args=(
             job.id,
             resume_text,
-            resume_bytes,
-            resume_filename,
+            attachments,
             user_resume.position,
             sender_name,
             sender_email,
@@ -329,6 +362,7 @@ def send_emails(request):
             use_draft_for_all,
             draft_subject or None,
             draft_body or None,
+            user_resume.attachments_context,
         ),
         daemon=True,
     )
@@ -466,17 +500,22 @@ def preview_email(request):
 
     sender_name = request.user.first_name or request.user.email.split('@')[0]
 
+    if user_resume.attachments_context:
+        attach_text = f"resume and {user_resume.attachments_context}"
+    else:
+        attach_text = "resume"
+
     # Build a tokenized template (shown first in UI) that uses placeholders like {{first_name}}, {{company}}
     template_subject = f"{{{{position}}}} Application - {{{{sender_first_name}}}}"
     template_body = (
         "Hi {{first_name}},\n\n"
         "I’m reaching out about opportunities at {{company}}. I’m applying for the {{position}} role and wanted to share my background. "
-        "I’ve attached my resume for your review.\n\n"
+        f"I’ve attached my {attach_text} for your review.\n\n"
         "Best,\n{{sender_first_name}}"
     )
 
     try:
-        subject, body = generate_cold_email(resume_text, user_resume.position, sender_name, contact)
+        subject, body = generate_cold_email(resume_text, user_resume.position, sender_name, contact, user_resume.attachments_context)
         return JsonResponse({
             'subject': subject,
             'body': body,
@@ -534,21 +573,32 @@ def download_resume(request):
         return JsonResponse({'error': 'No resume found. Please upload a resume.'}, status=404)
 
     try:
-        # Get resume from FileField
-        if not user_resume.resume or not user_resume.resume.name:
-            return JsonResponse({'error': 'No resume file found. Please upload a resume.'}, status=404)
+        extra_id = request.GET.get('extra')
+        file_obj = None
+        
+        if extra_id == '1' and user_resume.extra_attachment_1:
+            file_obj = user_resume.extra_attachment_1
+        elif extra_id == '2' and user_resume.extra_attachment_2:
+            file_obj = user_resume.extra_attachment_2
+        elif extra_id == '3' and user_resume.extra_attachment_3:
+            file_obj = user_resume.extra_attachment_3
+        elif not extra_id and user_resume.resume:
+            file_obj = user_resume.resume
 
-        resume_bytes = get_resume_content_bytes_from_file(user_resume.resume)
-        resume_filename = os.path.basename(user_resume.resume.name) or 'resume.pdf'
+        if not file_obj or not file_obj.name:
+            return JsonResponse({'error': 'File not found. Please upload it again.'}, status=404)
 
-        if not resume_bytes:
+        file_bytes = get_resume_content_bytes_from_file(file_obj)
+        filename = os.path.basename(file_obj.name)
+
+        if not file_bytes:
             return JsonResponse({'error': 'Resume file is empty'}, status=400)
 
-        response = HttpResponse(resume_bytes, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="{resume_filename}"'
+        response = HttpResponse(file_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         return response
     except Exception as e:
-        return JsonResponse({'error': f'Failed to download resume: {str(e)}'}, status=500)
+        return JsonResponse({'error': 'Failed to download file. Please refresh the page or try uploading it again.'}, status=500)
 
 
 def get_google_flow(request, state=None):

@@ -51,6 +51,7 @@ const Dashboard = () => {
       setContactCount(res.data.count);
       setContacts(res.data.contacts);
       setSelectedIds(new Set(res.data.contacts.map(c => c.id)));
+      setSelectedIds(new Set(res.data.contacts.filter(c => !c.emailed_at).map(c => c.id)));
     } catch (err) {
       // silently ignore
     }
@@ -333,6 +334,7 @@ const Dashboard = () => {
                     />
                   </th>
                   <th style={{ textAlign: 'left', padding: '0.3rem 0.5rem', color: '#888', fontWeight: 500 }}>Name</th>
+                  <th style={{ textAlign: 'left', padding: '0.3rem 0.5rem', color: '#888', fontWeight: 500 }}>Email</th>
                   <th style={{ textAlign: 'left', padding: '0.3rem 0.5rem', color: '#888', fontWeight: 500 }}>Company</th>
                   <th style={{ textAlign: 'left', padding: '0.3rem 0.5rem', color: '#888', fontWeight: 500 }}>Title</th>
                   <th style={{ textAlign: 'center', padding: '0.3rem 0.5rem', color: '#888', fontWeight: 500 }}>Emailed</th>
@@ -355,6 +357,7 @@ const Dashboard = () => {
                       />
                     </td>
                     <td style={{ padding: '0.3rem 0.5rem', color: '#ccc' }}>{c.name}</td>
+                    <td style={{ padding: '0.3rem 0.5rem', color: '#ccc' }}>{c.email}</td>
                     <td style={{ padding: '0.3rem 0.5rem', color: '#ccc' }}>{c.company}</td>
                     <td style={{ padding: '0.3rem 0.5rem', color: '#999' }}>{c.title}</td>
                     <td style={{ padding: '0.3rem 0.5rem', textAlign: 'center' }}>

@@ -5,7 +5,7 @@ import './LandingPage.css';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const handleButtonClick = () => {
     if (user) {
@@ -14,6 +14,8 @@ const LandingPage = () => {
       navigate('/login');
     }
   };
+
+  if (loading) return null;
 
   return (
     <div className="jumbotron">

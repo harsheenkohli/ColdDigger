@@ -259,7 +259,8 @@ def send_email_with_resume(sender_name, sender_email, recipient_email, subject, 
 
     try:
         google_creds = GoogleCredentials.objects.get(user=user)
-        creds = Credentials.from_json(google_creds.creds_json)
+        import json
+        creds = Credentials.from_authorized_user_info(json.loads(google_creds.creds_json))
     except GoogleCredentials.DoesNotExist:
         raise ValueError("Gmail not connected. Please connect your Google account in the dashboard.")
 

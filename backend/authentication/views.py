@@ -515,7 +515,7 @@ def google_oauth_callback(request):
             user=request.user,
             defaults={'creds_json': creds.to_json()}
         )
-        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+        frontend_url = os.environ.get('FRONTEND_URL', 'https://cold-digger.vercel.app')
         from django.shortcuts import redirect
         return redirect(f'{frontend_url}/dashboard')
     except Exception as e:

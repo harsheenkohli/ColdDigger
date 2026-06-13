@@ -148,7 +148,7 @@ const About = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
             <svg style={{ position: 'absolute', width: 0, height: 0 }}>
               <defs>
-                <linearGradient id="icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id="icon-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
                   <stop offset="0%" stopColor="#93c5fd" />
                   <stop offset="40%" stopColor="#c4b5fd" />
                   <stop offset="100%" stopColor="#f9a8d4" />

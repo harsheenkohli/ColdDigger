@@ -11,7 +11,9 @@ const toTitleCase = (str) => {
 const Dashboard = () => {
   const { user } = useAuth();
   const [uploadStatus, setUploadStatus] = useState("");
-  const [error, setError] = useState("");
+  const [profileError, setProfileError] = useState("");
+  const [previewError, setPreviewError] = useState("");
+  const [sendError, setSendError] = useState("");
   const [position, setPosition] = useState("");
   const [contactCount, setContactCount] = useState(0);
   const [sending, setSending] = useState(false);
@@ -81,14 +83,14 @@ const Dashboard = () => {
 
   const handleFileSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setProfileError("");
     setUploadStatus("");
 
     const resumeFile = document.getElementById('resume-upload').files[0];
     const csvFile = document.getElementById('csv-upload').files[0];
 
     if (!position && !resumeFile) {
-      setError("Please provide either a position or upload a resume");
+      setProfileError("Please provide either a position or upload a resume");
       return;
     }
 
@@ -117,7 +119,7 @@ const Dashboard = () => {
       if (csvFile) fetchContacts();
       if (resumeFile) fetchResume();
     } catch (err) {
-      setError(err.response?.data?.error || 'Upload failed');
+      setProfileError(err.response?.data?.error || 'Upload failed');
     }
   };
 
@@ -126,7 +128,7 @@ const Dashboard = () => {
       const res = await api.get('/api/google/login/');
       window.location.href = res.data.auth_url;
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to initiate Google Login. Please try again.');
+      setSendError(err.response?.data?.error || 'Failed to initiate Google Login. Please try again.');
     }
   };
 
@@ -138,7 +140,7 @@ const Dashboard = () => {
       setSelectedIds(new Set());
       setUploadStatus('Contact list cleared.');
     } catch (err) {
-      setError('Could not clear contacts.');
+      setProfileError('Could not clear contacts.');
     }
   };
 
@@ -162,7 +164,7 @@ const Dashboard = () => {
     setLoadingPreview(true);
     setPreview(null);
     setEditablePreview(null);
-    setError('');
+    setPreviewError('');
     try {
       const firstSelected = contacts.find(c => selectedIds.has(c.id)) || contacts[0];
       const res = await api.post('/api/preview-email/', { contact_id: firstSelected?.id || null });
@@ -173,7 +175,7 @@ const Dashboard = () => {
         body: res.data.body || res.data.template_body || '',
       });
     } catch (err) {
-      setError(err.response?.data?.error || 'Could not generate preview');
+      setPreviewError(err.response?.data?.error || 'Could not generate preview');
     } finally {
       setLoadingPreview(false);
     }
@@ -181,7 +183,7 @@ const Dashboard = () => {
 
   const handleSendEmails = async () => {
     setSending(true);
-    setError('');
+    setSendError('');
     setConfirmSend(false);
     setJobProgress(null);
 
@@ -207,11 +209,11 @@ const Dashboard = () => {
         } catch (err) {
           clearInterval(pollRef.current);
           setSending(false);
-          setError('Lost connection to job. Check back later.');
+          setSendError('Lost connection to job. Check back later.');
         }
       }, 3000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to start email job');
+      setSendError(err.response?.data?.error || 'Failed to start email job');
       setSending(false);
     }
   };
@@ -228,9 +230,6 @@ const Dashboard = () => {
     <div className="container">
       <h3>Dashboard</h3>
       <h2>Welcome, <span>{user?.name ? toTitleCase(user.name) : ''}</span>!</h2>
-
-      {error && <p className="error-message">{error}</p>}
-      {uploadStatus && <p className="success-message">{uploadStatus}</p>}
 
       <form onSubmit={handleFileSubmit}>
         <div className="upload-section">
@@ -289,6 +288,8 @@ const Dashboard = () => {
           </div>
         </div>
         <button type="submit" className="btn submit-btn">Save Profile</button>
+        {profileError && <p className="error-message" style={{ marginTop: '1rem', marginBottom: 0 }}>{profileError}</p>}
+        {uploadStatus && <p className="success-message" style={{ marginTop: '1rem', marginBottom: 0 }}>{uploadStatus}</p>}
       </form>
 
       <div className="upload-section" style={{ marginTop: '2rem', width: '100%' }}>
@@ -387,15 +388,18 @@ const Dashboard = () => {
         )}
 
         {contactCount > 0 && (
-          <button
-            type="button"
-            className="btn"
-            onClick={handlePreview}
-            disabled={loadingPreview || sending || !savedResume}
-            style={{ marginBottom: '0.75rem', width: '100%' }}
-          >
-            {loadingPreview ? 'Generating preview...' : 'Preview one email'}
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn"
+              onClick={handlePreview}
+              disabled={loadingPreview || sending || !savedResume}
+              style={{ marginBottom: '0.75rem', width: '100%' }}
+            >
+              {loadingPreview ? 'Generating preview...' : 'Preview one email'}
+            </button>
+            {previewError && <p className="error-message" style={{ marginTop: '-0.25rem', marginBottom: '0.75rem' }}>{previewError}</p>}
+          </>
         )}
 
         {preview && (
@@ -418,7 +422,7 @@ const Dashboard = () => {
               type="text"
               value={editablePreview?.subject || ''}
               onChange={(e) => setEditablePreview((current) => ({ ...(current || {}), subject: e.target.value }))}
-              style={{ width: '100%', marginBottom: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.2)', color: '#fff' }}
+              style={{ width: '100%', marginBottom: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: '#ffffff', color: '#000000' }}
             />
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem' }}>
               Body
@@ -427,7 +431,7 @@ const Dashboard = () => {
               value={editablePreview?.body || ''}
               onChange={(e) => setEditablePreview((current) => ({ ...(current || {}), body: e.target.value }))}
               rows={10}
-              style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.2)', color: '#fff', resize: 'vertical', whiteSpace: 'pre-wrap' }}
+              style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: '#ffffff', color: '#000000', resize: 'vertical', whiteSpace: 'pre-wrap' }}
             />
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
               <button
@@ -519,14 +523,17 @@ const Dashboard = () => {
     </div>
 
         {!confirmSend ? (
-          <button
-            type="button"
-            className="btn submit-btn"
-            onClick={() => setConfirmSend(true)}
-            disabled={sending || selectedIds.size === 0 || !savedResume}
-          >
-            {sending ? `Sending... ${jobProgress ? `${jobProgress.sent + jobProgress.failed}/${jobProgress.total}` : ''}` : 'Send cold emails'}
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn submit-btn"
+              onClick={() => setConfirmSend(true)}
+              disabled={sending || selectedIds.size === 0 || !savedResume}
+            >
+              {sending ? `Sending... ${jobProgress ? `${jobProgress.sent + jobProgress.failed}/${jobProgress.total}` : ''}` : 'Send cold emails'}
+            </button>
+            {sendError && <p className="error-message" style={{ marginTop: '0.75rem', marginBottom: 0 }}>{sendError}</p>}
+          </>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <p style={{ fontSize: '0.9rem', color: '#f0a500' }}>
@@ -540,6 +547,7 @@ const Dashboard = () => {
                 Cancel
               </button>
             </div>
+            {sendError && <p className="error-message" style={{ marginTop: '0.25rem', marginBottom: 0 }}>{sendError}</p>}
           </div>
         )}
       </div>

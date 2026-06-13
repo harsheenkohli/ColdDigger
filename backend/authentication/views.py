@@ -206,13 +206,13 @@ def send_emails(request):
 
     try:
         resume_text = extract_resume_text_from_file(user_resume.resume)
-    except Exception as e:
-        return JsonResponse({'error': f'Could not read resume: {str(e)}'}, status=400)
+    except Exception:
+        return JsonResponse({'error': 'We could not read your resume. Please ensure it is a valid, text-based PDF.'}, status=400)
 
     try:
         resume_bytes = get_resume_content_bytes_from_file(user_resume.resume)
-    except Exception as e:
-        return JsonResponse({'error': f'Could not load resume file: {str(e)}'}, status=400)
+    except Exception:
+        return JsonResponse({'error': 'We could not load your resume file. Please try uploading it again.'}, status=400)
 
     resume_filename = os.path.basename(user_resume.resume.name) or 'resume.pdf'
     sender_name = request.user.first_name or request.user.email.split('@')[0]
@@ -360,8 +360,8 @@ def preview_email(request):
 
     try:
         resume_text = extract_resume_text_from_file(user_resume.resume)
-    except Exception as e:
-        return JsonResponse({'error': f'Could not read resume: {str(e)}'}, status=400)
+    except Exception:
+        return JsonResponse({'error': 'We could not read your resume. Please ensure it is a valid, text-based PDF.'}, status=400)
 
     sender_name = request.user.first_name or request.user.email.split('@')[0]
 

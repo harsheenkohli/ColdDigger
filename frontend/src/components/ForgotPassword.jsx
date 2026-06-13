@@ -71,6 +71,34 @@ const ForgotPassword = () => {
           </button>
         </form>
       )}
+    <div style={{ maxWidth: '440px', margin: '4rem auto', width: '100%', padding: '0 1rem' }}>
+      <div className="upload-section" style={{ background: '#ffffff', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 4px 32px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
+        <h2 style={{ textAlign: 'center', margin: '0 0 1.5rem', fontSize: '1.8rem', color: '#1d1d1f', fontWeight: 700, letterSpacing: '-0.02em' }}>Reset Password</h2>
+        
+        {status && <p className="success-message" style={{ marginBottom: '1.5rem' }}>{status}</p>}
+        {error && <p className="error-message" style={{ marginBottom: '1.5rem' }}>{error}</p>}
+        
+        {step === 1 && (
+          <form onSubmit={handleRequestOTP} style={{ maxWidth: '100%' }}>
+            <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginBottom: '1.5rem', textAlign: 'center', lineHeight: 1.6 }}>
+              Enter your email and we will send you a 6-digit OTP to reset your password.
+            </p>
+            <div className="file-upload" style={{ marginBottom: '1.5rem' }}>
+              <label style={{ color: '#1d1d1f', fontWeight: 600, fontSize: '0.85rem' }}>Email Address</label>
+              <input
+                type="email"
+                placeholder="e.g. name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ background: '#f9f9fb' }}
+              />
+            </div>
+            <button className="btn submit-btn" type="submit" disabled={loading} style={{ padding: '0.85rem', fontSize: '0.95rem' }}>
+              {loading ? "Sending..." : "Send OTP"}
+            </button>
+          </form>
+        )}
 
       {step === 2 && (
         <form onSubmit={handleResetPassword}>
@@ -85,10 +113,47 @@ const ForgotPassword = () => {
           </button>
         </form>
       )}
+        {step === 2 && (
+          <form onSubmit={handleResetPassword} style={{ maxWidth: '100%' }}>
+            <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginBottom: '1.5rem', textAlign: 'center', lineHeight: 1.6 }}>
+              Enter the 6-digit OTP sent to <strong style={{ color: '#1d1d1f' }}>{email}</strong>
+            </p>
+            <div className="file-upload" style={{ marginBottom: '1rem' }}>
+              <label style={{ color: '#1d1d1f', fontWeight: 600, fontSize: '0.85rem' }}>Security Code</label>
+              <input 
+                type="text" 
+                placeholder="• • • • • •" 
+                value={otp} 
+                onChange={(e) => setOtp(e.target.value)} 
+                required 
+                maxLength={6} 
+                style={{ background: '#f9f9fb', letterSpacing: '0.5rem', textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 }} 
+              />
+            </div>
+            <div className="file-upload" style={{ marginBottom: '1.5rem' }}>
+              <label style={{ color: '#1d1d1f', fontWeight: 600, fontSize: '0.85rem' }}>New Password</label>
+              <input 
+                type="password" 
+                placeholder="At least 8 characters" 
+                value={newPassword} 
+                onChange={(e) => setNewPassword(e.target.value)} 
+                required 
+                style={{ background: '#f9f9fb' }}
+              />
+            </div>
+            <button className="btn submit-btn" type="submit" disabled={loading} style={{ padding: '0.85rem', fontSize: '0.95rem' }}>
+              {loading ? "Resetting..." : "Reset Password"}
+            </button>
+          </form>
+        )}
 
       <p style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: '#6e6e73' }}>
         <Link to="/login" style={{ textDecoration: 'none' }}>Back to Login</Link>
       </p>
+        <p style={{ marginTop: '2rem', fontSize: '0.9rem', color: '#6e6e73', textAlign: 'center' }}>
+          <Link to="/login" style={{ color: '#0071e3', textDecoration: 'none', fontWeight: 500 }}>Back to Login</Link>
+        </p>
+      </div>
     </div>
   );
 };

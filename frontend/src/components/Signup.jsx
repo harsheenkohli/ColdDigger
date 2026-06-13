@@ -68,7 +68,7 @@ const Signup = () => {
       </p>
       <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#ffc107', borderRadius: '8px', border: '1px solid #e0a800', textAlign: 'left' }}>
         <p style={{ margin: 0, fontSize: '0.85rem', color: '#000', lineHeight: '1.6' }}>
-          <strong>Want to skip signing up? Use our Test Account:</strong><br />
+          <strong>Test Credentials</strong><br />
           Email: colddigger14@gmail.com<br />
           Password: WeWillWin
         </p>

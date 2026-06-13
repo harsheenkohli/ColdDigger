@@ -14,11 +14,7 @@ ColdDigger is a full-stack web application built with React and Django. It autom
 
 ## Tech Stack
 
-![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
-![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-![PostgreSQL](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
-![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+[![Tech Stack](https://skillicons.dev/icons?i=react,django,python,postgres,vite)](https://skillicons.dev)
 
 * **Frontend:** React, React Router and plain CSS
 * **Backend:** Django, Python and PostgreSQL
@@ -55,7 +51,7 @@ SMTP_PASSWORD=your_smtp_password
 
 First, clone the repository to your local machine:
 ```bash
-git clone https://github.com/harsheenkohli/ColdDigger.git
+git clone <your-repository-url>
 cd ColdDigger
 ```
 

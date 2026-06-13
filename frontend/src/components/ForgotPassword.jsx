@@ -49,28 +49,6 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: '520px', marginTop: '2rem' }}>
-      <h2>Reset Password</h2>
-      {status && <p className="success-message">{status}</p>}
-      {error && <p className="error-message">{error}</p>}
-      
-      {step === 1 && (
-        <form onSubmit={handleRequestOTP}>
-          <p style={{ color: '#6e6e73', fontSize: '0.9rem', marginBottom: '0.5rem', textAlign: 'center' }}>
-            Enter your email and we will send you a 6-digit OTP to reset your password.
-          </p>
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button className="btn submit-btn" type="submit" disabled={loading}>
-            {loading ? "Sending..." : "Send OTP"}
-          </button>
-        </form>
-      )}
     <div style={{ maxWidth: '440px', margin: '4rem auto', width: '100%', padding: '0 1rem' }}>
       <div className="upload-section" style={{ background: '#ffffff', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 4px 32px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
         <h2 style={{ textAlign: 'center', margin: '0 0 1.5rem', fontSize: '1.8rem', color: '#1d1d1f', fontWeight: 700, letterSpacing: '-0.02em' }}>Reset Password</h2>
@@ -100,19 +78,6 @@ const ForgotPassword = () => {
           </form>
         )}
 
-      {step === 2 && (
-        <form onSubmit={handleResetPassword}>
-          <p style={{ color: '#6e6e73', fontSize: '0.9rem', marginBottom: '0.5rem', textAlign: 'center' }}>
-            Enter the 6-digit OTP sent to <strong>{email}</strong>
-          </p>
-          <input type="text" placeholder="6-digit OTP" value={otp} onChange={(e) => setOtp(e.target.value)} required maxLength={6} style={{ letterSpacing: '0.2rem', textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 }} />
-          <input type="password" placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-          <small style={{ color: '#888', marginTop: '-0.5rem' }}>At least 8 characters</small>
-          <button className="btn submit-btn" type="submit" disabled={loading}>
-            {loading ? "Resetting..." : "Reset Password"}
-          </button>
-        </form>
-      )}
         {step === 2 && (
           <form onSubmit={handleResetPassword} style={{ maxWidth: '100%' }}>
             <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginBottom: '1.5rem', textAlign: 'center', lineHeight: 1.6 }}>
@@ -147,9 +112,6 @@ const ForgotPassword = () => {
           </form>
         )}
 
-      <p style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: '#6e6e73' }}>
-        <Link to="/login" style={{ textDecoration: 'none' }}>Back to Login</Link>
-      </p>
         <p style={{ marginTop: '2rem', fontSize: '0.9rem', color: '#6e6e73', textAlign: 'center' }}>
           <Link to="/login" style={{ color: '#0071e3', textDecoration: 'none', fontWeight: 500 }}>Back to Login</Link>
         </p>

@@ -11,6 +11,7 @@ const ForgotPassword = () => {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const handleRequestOTP = async (e) => {
     e.preventDefault();
@@ -48,13 +49,36 @@ const ForgotPassword = () => {
     }
   };
 
+  const handleResendOTP = async () => {
+    setResendLoading(true);
+    setError("");
+    setStatus("");
+    try {
+      await api.post("/api/request-password-reset/", { email });
+      setStatus("A fresh OTP has been sent to your email.");
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to resend OTP.");
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <div style={{ maxWidth: '440px', margin: '4rem auto', width: '100%', padding: '0 1rem' }}>
       <div className="upload-section" style={{ background: '#ffffff', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 4px 32px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
         <h2 style={{ textAlign: 'center', margin: '0 0 1.5rem', fontSize: '1.8rem', color: '#1d1d1f', fontWeight: 700, letterSpacing: '-0.02em' }}>Reset Password</h2>
         
         {status && <p className="success-message" style={{ marginBottom: '1.5rem' }}>{status}</p>}
-        {error && <p className="error-message" style={{ marginBottom: '1.5rem' }}>{error}</p>}
+        {error && (
+          <div className="error-message" style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+            <span>{error}</span>
+            {error.includes("No account found") && (
+              <Link to="/signup" className="btn submit-btn" style={{ padding: '0.6rem 1.25rem', fontSize: '0.85rem', width: 'auto', textDecoration: 'none', marginTop: '0.5rem' }}>
+                Create an account
+              </Link>
+            )}
+          </div>
+        )}
         
         {step === 1 && (
           <form onSubmit={handleRequestOTP} style={{ maxWidth: '100%' }}>
@@ -109,6 +133,17 @@ const ForgotPassword = () => {
             <button className="btn submit-btn" type="submit" disabled={loading} style={{ padding: '0.85rem', fontSize: '0.95rem' }}>
               {loading ? "Resetting..." : "Reset Password"}
             </button>
+
+            <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+              <button 
+                type="button" 
+                onClick={handleResendOTP} 
+                disabled={resendLoading || loading}
+                style={{ background: 'none', border: 'none', color: '#0071e3', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'none', fontWeight: 500 }}
+              >
+                {resendLoading ? "Sending new code..." : "Didn't receive it? Resend OTP"}
+              </button>
+            </div>
           </form>
         )}
 

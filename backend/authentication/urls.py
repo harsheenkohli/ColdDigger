@@ -19,4 +19,7 @@ urlpatterns = [
     path('last-email-job/', views.last_email_job, name='last_email_job'),
     path('google/login/', views.google_oauth_login, name='google_login'),
     path('google/callback/', views.google_oauth_callback, name='google_callback'),
+    path('update-profile/', views.update_profile, name='update_profile'),
+    path('request-password-reset/', views.request_password_reset, name='request_password_reset'),
+    path('reset-password/', views.reset_password, name='reset_password'),
 ]

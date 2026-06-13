@@ -19,16 +19,8 @@ const About = () => {
 
   const features = [
     {
-      title: "No placeholders",
-      description: "Every email is fully written out. No [First Name] or [Company Name] left in.",
-    },
-    {
       title: "Tone that fits",
       description: "A recruiter gets a different email than a CEO or an engineer. The tone shifts automatically based on job title.",
-    },
-    {
-      title: "Your resume, attached",
-      description: "Each email goes out with your resume as an attachment and your name in the sender field.",
     },
     {
       title: "Company context",
@@ -134,16 +126,33 @@ const About = () => {
           <h2 style={{ fontSize: '1.8rem', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '2.5rem', color: '#1d1d1f', textAlign: 'center' }}>
             Why it works
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
             {features.map((f) => (
               <div key={f.title} style={{
-                background: '#f5f5f7',
-                padding: '2rem',
+                background: '#ffffff',
+                padding: '3rem 2rem',
                 borderRadius: '24px',
-                border: '1px solid rgba(0,0,0,0.03)'
+                border: '1px solid rgba(0,0,0,0.04)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
               }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#1d1d1f', marginBottom: '0.75rem', letterSpacing: '-0.01em' }}>{f.title}</h3>
-                <p style={{ fontSize: '0.95rem', color: '#6e6e73', lineHeight: 1.6, margin: 0 }}>{f.description}</p>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, rgba(147,197,253,0.2) 0%, rgba(196,181,253,0.2) 40%, rgba(249,168,212,0.2) 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '1.5rem'
+                }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'linear-gradient(135deg, #93c5fd 0%, #c4b5fd 40%, #f9a8d4 100%)' }}></div>
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1d1d1f', marginBottom: '1rem', letterSpacing: '-0.01em' }}>{f.title}</h3>
+                <p style={{ fontSize: '1rem', color: '#6e6e73', lineHeight: 1.6, margin: 0 }}>{f.description}</p>
               </div>
             ))}
           </div>

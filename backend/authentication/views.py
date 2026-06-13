@@ -113,7 +113,7 @@ def request_password_reset(request):
             
             user = User.objects.filter(email__iexact=email).first()
             if not user:
-                return JsonResponse({'message': 'If an account with that email exists, an OTP has been sent.'})
+                return JsonResponse({'error': 'No account found with that email address.'}, status=404)
             
             otp = str(random.randint(100000, 999999))
             cache.set(f'pwd_reset_{email}', otp, timeout=900)
@@ -144,7 +144,7 @@ def request_password_reset(request):
             else:
                 return JsonResponse({'error': 'SMTP is not configured on the server.'}, status=500)
             
-            return JsonResponse({'message': 'If an account with that email exists, an OTP has been sent.'})
+            return JsonResponse({'message': 'An OTP has been sent to your email.'})
         except Exception as e:
             return JsonResponse({'error': 'Failed to send OTP. Please try again later.'}, status=500)
     return JsonResponse({'error': 'Method not allowed'}, status=405)

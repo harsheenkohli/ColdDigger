@@ -202,6 +202,7 @@ RULES:
 5. Maximum 3 paragraphs.
 6. Close with only the sender's first name as the signature.
 7. Do NOT include a subject line inside the body.
+8. Write continuous paragraphs. Do NOT use hard line breaks in the middle of sentences.
 
 Output format — use these exact labels:
 SUBJECT: <subject line>
@@ -234,6 +235,9 @@ BODY:
                     body = text.replace(subject_match.group(0), '').strip()
                 else:
                     body = text.strip()
+
+            # Safely remove mid-sentence hard line breaks (preserves paragraphs and signatures)
+            body = re.sub(r'([a-zA-Z0-9.:;?!])\n([a-zA-Z0-9])', r'\1 \2', body)
 
             if not subject:
                 subject = f"{position} Application - {sender_name}"

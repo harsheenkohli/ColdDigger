@@ -55,7 +55,7 @@ SMTP_PASSWORD=your_smtp_password
 
 First, clone the repository to your local machine:
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/harsheenkohli/ColdDigger.git
 cd ColdDigger
 ```
 
